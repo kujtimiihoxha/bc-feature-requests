@@ -22,7 +22,8 @@ _cgo_export.*
 _testmain.go
 
 *.exe
+*.exe~
 *.test
 *.prof
-
+*.tmp
 .idea
