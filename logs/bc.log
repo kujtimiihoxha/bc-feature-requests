@@ -1,0 +1,207 @@
+2016/08/28 19:29:05 [app.go:131] [C] ListenAndServe:  accept tcp [::]:8080: use of closed network connection 7160
+2016/08/28 19:55:36 [app.go:131] [C] ListenAndServe:  accept tcp [::]:8080: use of closed network connection 4956
+2016/08/28 20:33:11 [app.go:131] [C] ListenAndServe:  accept tcp [::]:8080: use of closed network connection 5616
+2016/08/28 20:44:51 [router.go:896] [C] the request url is  /
+2016/08/28 20:44:51 [router.go:897] [C] Handler crashed with error runtime error: invalid memory address or nil pointer dereference
+2016/08/28 20:44:51 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/28 20:44:51 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/28 20:44:51 [router.go:903] [C] C:/Go/src/runtime/panic.go:62
+2016/08/28 20:44:51 [router.go:903] [C] C:/Go/src/runtime/signal_windows.go:161
+2016/08/28 20:44:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/session.go:168
+2016/08/28 20:44:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/query.go:253
+2016/08/28 20:44:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/default.go:28
+2016/08/28 20:44:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:768
+2016/08/28 20:44:51 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/28 20:44:51 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/28 20:44:51 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/28 21:11:51 [app.go:131] [C] ListenAndServe:  accept tcp [::]:8081: use of closed network connection 8496
+2016/08/28 21:13:20 [app.go:131] [C] ListenAndServe:  accept tcp [::]:8081: use of closed network connection 10060
+2016/08/29 11:23:21 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 11:23:21 [router.go:896] [C] the request url is  /api/v1/clients
+2016/08/29 11:23:21 [router.go:897] [C] Handler crashed with error runtime error: invalid memory address or nil pointer dereference
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/runtime/panic.go:62
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/runtime/signal_windows.go:161
+2016/08/29 11:23:21 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/session.go:168
+2016/08/29 11:23:21 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/query.go:253
+2016/08/29 11:23:21 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/query.go:275
+2016/08/29 11:23:21 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/client.go:37
+2016/08/29 11:23:21 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:32
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 11:23:21 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 11:23:21 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 11:24:12 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 11:25:23 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 11:25:27 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 11:25:52 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 11:27:53 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 11:33:51 [router.go:896] [C] the request url is  /api/v1/clients
+2016/08/29 11:33:51 [router.go:897] [C] Handler crashed with error result argument must be a slice address
+2016/08/29 11:33:51 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 11:33:51 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 11:33:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/cursor.go:354
+2016/08/29 11:33:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/client.go:43
+2016/08/29 11:33:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:15
+2016/08/29 11:33:51 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 11:33:51 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 11:33:51 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 11:33:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 11:33:51 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 11:33:51 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 11:33:51 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 11:34:17 [router.go:896] [C] the request url is  /api/v1/clients
+2016/08/29 11:34:17 [router.go:897] [C] Handler crashed with error runtime error: invalid memory address or nil pointer dereference
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/runtime/panic.go:62
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/runtime/signal_windows.go:161
+2016/08/29 11:34:17 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:16
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 11:34:17 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 11:34:17 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 11:35:45 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 11:36:01 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 11:53:07 [router.go:896] [C] the request url is  /api/v1/clients/2fa0b395-9140-47cf-8f2e-1ce75e1e0ab4s
+2016/08/29 11:53:07 [router.go:897] [C] Handler crashed with error runtime error: invalid memory address or nil pointer dereference
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/runtime/panic.go:62
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/runtime/signal_windows.go:161
+2016/08/29 11:53:07 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/client.go:71
+2016/08/29 11:53:07 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:27
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 11:53:07 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 11:53:07 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 12:09:17 [log.go:100] [D] Parsed ClientCreateEdit: &{test1234 } 
+2016/08/29 13:10:17 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 13:10:46 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 13:11:08 [log.go:100] [D] Parsed ClientCreateEdit: &{test1234 } 
+2016/08/29 13:11:18 [log.go:100] [D] Parsed ClientCreateEdit: &{ } 
+2016/08/29 13:11:23 [log.go:100] [D] Error while parsing ClientCreateEdit: unexpected end of JSON input 
+2016/08/29 13:11:35 [log.go:100] [D] Parsed ClientCreateEdit: &{ } 
+2016/08/29 13:11:50 [log.go:100] [D] Parsed ClientCreateEdit: &{ Edit} 
+2016/08/29 13:12:10 [log.go:100] [D] Parsed ClientCreateEdit: &{ Edit} 
+2016/08/29 13:47:02 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 13:47:19 [log.go:100] [D] Parsed ClientCreateEdit: &{ Edit} 
+2016/08/29 13:50:51 [router.go:896] [C] the request url is  /api/v1/clients
+2016/08/29 13:50:51 [router.go:897] [C] Handler crashed with error result argument must be a slice address
+2016/08/29 13:50:51 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 13:50:51 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 13:50:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/cursor.go:354
+2016/08/29 13:50:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/base.go:19
+2016/08/29 13:50:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/client.go:50
+2016/08/29 13:50:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:16
+2016/08/29 13:50:51 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 13:50:51 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 13:50:51 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 13:50:51 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 13:50:51 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 13:50:51 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 13:50:51 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 14:01:39 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:01:48 [log.go:100] [D] Parsed ClientCreateEdit: &{ Hello} 
+2016/08/29 14:03:17 [log.go:100] [D] Parsed ClientCreateEdit: &{ Hello} 
+2016/08/29 14:04:03 [log.go:100] [D] ClientCreateEdit validation failed: &{400 10001 Data entry errors Client parameter error Name: non zero value required;} 
+2016/08/29 14:04:30 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:08:10 [log.go:100] [D] Parsed ClientCreateEdit: &{ Edit} 
+2016/08/29 14:53:17 [router.go:896] [C] the request url is  /api/v1/clients
+2016/08/29 14:53:17 [router.go:897] [C] Handler crashed with error interface conversion: **gorethink.Session is not gorethink.QueryExecutor: missing method Exec
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/runtime/iface.go:41
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/runtime/iface.go:366
+2016/08/29 14:53:17 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/base.go:24
+2016/08/29 14:53:17 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/client.go:47
+2016/08/29 14:53:17 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:16
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 14:53:17 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 14:53:17 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 14:53:34 [router.go:896] [C] the request url is  /api/v1/clients
+2016/08/29 14:53:34 [router.go:897] [C] Handler crashed with error runtime error: invalid memory address or nil pointer dereference
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/runtime/panic.go:62
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/runtime/signal_windows.go:161
+2016/08/29 14:53:34 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/session.go:168
+2016/08/29 14:53:34 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/query.go:253
+2016/08/29 14:53:34 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/base.go:24
+2016/08/29 14:53:34 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/client.go:47
+2016/08/29 14:53:34 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:16
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 14:53:34 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 14:53:34 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 14:54:45 [router.go:896] [C] the request url is  /api/v1/clients
+2016/08/29 14:54:45 [router.go:897] [C] Handler crashed with error runtime error: invalid memory address or nil pointer dereference
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/runtime/panic.go:62
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/runtime/signal_windows.go:161
+2016/08/29 14:54:45 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/session.go:168
+2016/08/29 14:54:45 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/gopkg.in/dancannon/gorethink.v2/query.go:253
+2016/08/29 14:54:45 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/base.go:24
+2016/08/29 14:54:45 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/client.go:47
+2016/08/29 14:54:45 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:16
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 14:54:45 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 14:54:45 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 14:55:25 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:55:25 [router.go:896] [C] the request url is  /api/v1/clients
+2016/08/29 14:55:25 [router.go:897] [C] Handler crashed with error runtime error: index out of range
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/runtime/panic.go:458
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/runtime/panic.go:27
+2016/08/29 14:55:25 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/base.go:72
+2016/08/29 14:55:25 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/models/client.go:70
+2016/08/29 14:55:25 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/kujtimiihoxha/bc-feature-requests/controllers/client.go:62
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:479
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/reflect/value.go:434
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/reflect/value.go:302
+2016/08/29 14:55:25 [router.go:903] [C] C:/Users/kujtim/Documents/Go/src/github.com/astaxie/beego/router.go:785
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/net/http/server.go:2202
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/net/http/server.go:1579
+2016/08/29 14:55:25 [router.go:903] [C] C:/Go/src/runtime/asm_amd64.s:2086
+2016/08/29 14:56:25 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:13 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:45 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:51 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:51 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:51 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:51 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:52 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:52 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:52 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:52 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:52 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:52 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:53 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:57:53 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:58:07 [log.go:100] [D] Parsed ClientCreateEdit: &{test123 Hello} 
+2016/08/29 14:58:25 [log.go:100] [D] Parsed ClientCreateEdit: &{ Edit} 
+2016/08/29 14:58:30 [log.go:100] [D] Parsed ClientCreateEdit: &{ s} 
+2016/08/29 14:58:35 [log.go:100] [D] Parsed ClientCreateEdit: &{s } 
+2016/08/29 15:28:32 [app.go:131] [C] ListenAndServe:  accept tcp [::]:8081: use of closed network connection 7212
