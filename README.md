@@ -8,5 +8,5 @@ Feature requests app.
 ```
 ### Run test 
 ```bash
-    goconvey -port 8082 -workDir tests
+    goconvey -port 8082
 ```

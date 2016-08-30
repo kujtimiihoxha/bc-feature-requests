@@ -12,7 +12,6 @@ type ClientController struct {
 }
 
 func (c *ClientController) Get() {
-	//TODO add token check.
 	clients, result := models.GetAllClients()
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
@@ -24,7 +23,6 @@ func (c *ClientController) Get() {
 	c.ServeJSON()
 }
 func (c *ClientController) GetByID() {
-	//TODO add token check.
 	client := models.Client{}
 	result := client.GetById(c.Ctx.Input.Param(":id"))
 	if result.Code != 0 {
@@ -42,7 +40,12 @@ func (c *ClientController) GetByID() {
 	c.ServeJSON()
 }
 func (c *ClientController) Post() {
-	//TODO add token check.
+	res := c.AdminAccessOnly()
+	if res != nil {
+		beego.Debug("No Access", res)
+		c.RetError(res)
+		return
+	}
 	inData := models.ClientCreate{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &inData)
 	if err != nil {
@@ -73,7 +76,12 @@ func (c *ClientController) Post() {
 	c.ServeJSON()
 }
 func (c *ClientController) Delete() {
-	//TODO add token check.
+	res := c.AdminAccessOnly()
+	if res != nil {
+		beego.Debug("No Access", res)
+		c.RetError(res)
+		return
+	}
 	client := models.Client{}
 	result := client.Delete(c.Ctx.Input.Param(":id"))
 	if result.Code != 0 {
@@ -94,8 +102,12 @@ func (c *ClientController) Delete() {
 	c.ServeJSON()
 }
 func (c *ClientController) Update() {
-
-	//TODO add token check.
+	res := c.AdminAccessOnly()
+	if res != nil {
+		beego.Debug("No Access", res)
+		c.RetError(res)
+		return
+	}
 	inData := models.ClientEdit{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &inData)
 	if err != nil {

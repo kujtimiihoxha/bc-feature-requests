@@ -4,8 +4,11 @@ package models
 const (
 	ErrDatabase = -1
 	ErrSystem   = -2
-	ErrDupRows  = -3
+	ErrUnAuthorized = -3
 	ErrNotFound = -4
+	ErrPasswordMismatch = -5
+	ErrEmailExists   = -6
+	ErrUsernameExists   = -7
 )
 
 // CodeInfo.

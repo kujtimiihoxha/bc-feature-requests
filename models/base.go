@@ -62,7 +62,7 @@ func (b *BaseModel) getById(table string,id string, model interface{}) *CodeInfo
 //     - Returns Generated ID and CodeInfo with Code = 0 (No error)
 
 func (b *BaseModel) insert(table string,model interface{}) (string,*CodeInfo) {
-	wr, err := r.Table(client_table).Insert(model).RunWrite(b.Session())
+	wr, err := r.Table(table).Insert(model).RunWrite(b.Session())
 	if wr.Errors > 0 {
 		return "", ErrorInfo(ErrDatabase, wr.FirstError)
 	}
@@ -86,7 +86,13 @@ func (b *BaseModel) update(table string, id string, model interface{}) *CodeInfo
 	if wr.Errors > 0 {
 		return ErrorInfo(ErrDatabase, wr.FirstError)
 	}
-	rs,_:= r.Table(table).Get(id).Run(b.Session());
+	rs,err:= r.Table(table).Get(id).Run(b.Session());
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	if rs.IsNil() {
+		return  ErrorInfo(ErrNotFound, "Not Found")
+	}
 	rs.One(model)
 	return OkInfo("Data updated succesfully")
 }
@@ -109,12 +115,13 @@ func (b *BaseModel) delete(table string, id string, model interface{}) *CodeInfo
 	if err != nil {
 		return  ErrorInfo(ErrSystem, err.Error())
 	}
-	wr,err := r.Table(client_table).Get(id).Delete().RunWrite(b.Session())
-	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
-	}
+	wr,err := r.Table(table).Get(id).Delete().RunWrite(b.Session())
+
 	if wr.Errors > 0 {
 		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
 	}
 	return OkInfo("Data deleted succesfully")
 }
