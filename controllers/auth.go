@@ -27,7 +27,6 @@ func (a *AuthController) Login() {
 		a.RetError(conErr)
 		return
 	}
-	beego.Debug("Parsed UserLogin:", &userLogin)
 	user := models.User{}
 	tk, result := user.Login(userLogin)
 	if result.Code != 0 {
@@ -40,9 +39,9 @@ func (a *AuthController) Login() {
 			a.RetError(errNotFound)
 			return
 		} else if result.Code == models.ErrUnAuthorized {
-			errNotFound := errPermission
-			errNotFound.MoreInfo = result.Info
-			a.RetError(errNotFound)
+			errPass := errPermission
+			errPass.Message = result.Info
+			a.RetError(errPass)
 			return
 		}
 	}

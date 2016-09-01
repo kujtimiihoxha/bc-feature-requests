@@ -34,6 +34,7 @@ const user_table = "users"
 type Claims struct {
 	jwt.StandardClaims
 	Username  string  `json:"username,omitempty"`
+	Email  string  `json:"email,omitempty"`
 	FirstName string  `json:"firstname,omitempty"`
 	LastName  string  `json:"lastname,omitempty"`
 	Role      int  `json:"role,omitempty"`
@@ -214,6 +215,7 @@ func (u *User) Login(userLogin UserLogin) (*TokenResponse, *CodeInfo) {
 			Issuer:    "bc",
 		},
 		Username: user.Username,
+		Email: user.Email,
 		FirstName: user.FirstName,
 		LastName: user.LastName,
 		Role: user.Role,
