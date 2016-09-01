@@ -7,62 +7,62 @@ import (
 	"time"
 )
 
-type ClientController struct {
+type ProductAreaController struct {
 	BaseController
 }
 
-func (c *ClientController) Get() {
-	clients, result := models.GetAllClients()
+func (c *ProductAreaController) Get() {
+	product_areas, result := models.GetAllProductAreas()
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
 		}
 	}
-	c.Data["json"] = clients
+	c.Data["json"] = product_areas
 	c.ServeJSON()
 }
-func (c *ClientController) GetByID() {
-	client := models.Client{}
-	result := client.GetById(c.Ctx.Input.Param(":id"))
+func (c *ProductAreaController) GetByID() {
+	product_area := models.ProductArea{}
+	result := product_area.GetById(c.Ctx.Input.Param(":id"))
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
 		} else if result.Code == models.ErrNotFound {
 			e := err404
-			e.MoreInfo = "Client with this ID could not be found"
+			e.MoreInfo = "ProductArea with this ID could not be found"
 			c.RetError(e)
 			return
 		}
 	}
-	c.Data["json"] = client
+	c.Data["json"] = product_area
 	c.ServeJSON()
 }
-func (c *ClientController) Post() {
+func (c *ProductAreaController) Post() {
 	res := c.AdminAccessOnly()
 	if res != nil {
 		beego.Debug("No Access", res)
 		c.RetError(res)
 		return
 	}
-	inData := models.ClientCreate{}
+	inData := models.ProductAreaCreate{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &inData)
 	if err != nil {
-		beego.Debug("Error while parsing ClientCreateEdit:", err)
+		beego.Debug("Error while parsing ProductAreaEdit:", err)
 		c.RetError(errInputData)
 		return
 	}
 	isValid, conErr := c.ValidateInput(inData)
 	if !isValid {
-		beego.Debug("ClientCreateEdit validation failed:", conErr)
+		beego.Debug("ProductAreaEdit validation failed:", conErr)
 		c.RetError(conErr)
 		return
 	}
-	beego.Debug("Parsed ClientCreateEdit:", &inData)
+	beego.Debug("Parsed ProductAreaEdit:", &inData)
 	createdAt := time.Now()
-	client := models.NewClient(&inData, createdAt)
-	result := client.Insert()
+	product_area := models.NewProductArea(&inData, createdAt)
+	result := product_area.Insert()
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -72,25 +72,25 @@ func (c *ClientController) Post() {
 			return
 		}
 	}
-	c.Data["json"] = client
+	c.Data["json"] = product_area
 	c.ServeJSON()
 }
-func (c *ClientController) Delete() {
+func (c *ProductAreaController) Delete() {
 	res := c.AdminAccessOnly()
 	if res != nil {
 		beego.Debug("No Access", res)
 		c.RetError(res)
 		return
 	}
-	client := models.Client{}
-	result := client.Delete(c.Ctx.Input.Param(":id"))
+	product_area := models.ProductArea{}
+	result := product_area.Delete(c.Ctx.Input.Param(":id"))
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
 		} else if result.Code == models.ErrNotFound {
 			e := err404
-			e.MoreInfo = "Client with this ID could not be found"
+			e.MoreInfo = "ProductArea with this ID could not be found"
 			c.RetError(e)
 			return
 		} else if result.Code == models.ErrDatabase {
@@ -98,32 +98,32 @@ func (c *ClientController) Delete() {
 			return
 		}
 	}
-	c.Data["json"] = client
+	c.Data["json"] = product_area
 	c.ServeJSON()
 }
-func (c *ClientController) Update() {
+func (c *ProductAreaController) Update() {
 	res := c.AdminAccessOnly()
 	if res != nil {
 		beego.Debug("No Access", res)
 		c.RetError(res)
 		return
 	}
-	inData := models.ClientEdit{}
+	inData := models.ProductAreaEdit{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &inData)
 	if err != nil {
-		beego.Debug("Error while parsing ClientCreateEdit:", err)
+		beego.Debug("Error while parsing ProductAreaEdit:", err)
 		c.RetError(errInputData)
 		return
 	}
 	isValid, conErr := c.ValidateInput(inData)
 	if !isValid {
-		beego.Debug("ClientCreateEdit validation failed:", conErr)
+		beego.Debug("ProductAreaEdit validation failed:", conErr)
 		c.RetError(conErr)
 		return
 	}
-	beego.Debug("Parsed ClientCreateEdit:", &inData)
-	client := models.Client{}
-	result := client.Update(c.Ctx.Input.Param(":id"), &inData, time.Now())
+	beego.Debug("Parsed ProductAreaeEdit:", &inData)
+	product_area := models.ProductArea{}
+	result := product_area.Update(c.Ctx.Input.Param(":id"), &inData, time.Now())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -133,11 +133,11 @@ func (c *ClientController) Update() {
 			return
 		}else if result.Code == models.ErrNotFound {
 			e := err404
-			e.MoreInfo = "Client with this ID could not be found"
+			e.MoreInfo = "ProductArea with this ID could not be found"
 			c.RetError(e)
 			return
 		}
 	}
-	c.Data["json"] = client
+	c.Data["json"] = product_area
 	c.ServeJSON()
 }

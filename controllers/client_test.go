@@ -372,7 +372,7 @@ func TestDeleteSuccess(t *testing.T) {
 // Should Return :
 // Status : 400
 // Code : 10013
-func TestDeleteOnlyAdmin(t *testing.T) {
+func TestDeleteOnlyAdmin(t *testing.T) 	{
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
 	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
 	w := httptest.NewRecorder()

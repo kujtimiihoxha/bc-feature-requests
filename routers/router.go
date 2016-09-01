@@ -32,6 +32,20 @@ func init() {
 			// Delete client
 			beego.NSRouter("/:id", &controllers.ClientController{}, "delete:Delete"),
 		),
+		beego.NSNamespace("/product-areas",
+			// Must be authenticated
+			beego.NSBefore(controllers.MustBeAuthenticated),
+			// Get all product areas
+			beego.NSRouter("/", &controllers.ProductAreaController{}, "get:Get"),
+			// Get  product area by ID
+			beego.NSRouter("/:id", &controllers.ProductAreaController{}, "get:GetByID"),
+			// Insert a  product area
+			beego.NSRouter("/", &controllers.ProductAreaController{}, "post:Post"),
+			// Update product area
+			beego.NSRouter("/:id", &controllers.ProductAreaController{}, "put:Update"),
+			// Delete product area
+			beego.NSRouter("/:id", &controllers.ProductAreaController{}, "delete:Delete"),
+		),
 		// Users endpoint
 		beego.NSNamespace("/users",
 			// Must be authenticated

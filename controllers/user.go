@@ -128,7 +128,6 @@ func (c *UserController) Delete() {
 	c.Data["json"] = user
 	c.ServeJSON()
 }
-
 func (c *UserController) Update() {
 	inData := models.UserEdit{}
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &inData)
