@@ -23,7 +23,7 @@ type Client struct {
 // The clients table name.
 const client_table = "clients"
 
-// Create new client from ClientCreateEdit data.
+// Create new client from ClientCreateCreate data.
 // client: data.
 // t: time to set CreatedAt.
 // Returns:

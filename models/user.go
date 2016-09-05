@@ -38,6 +38,7 @@ type Claims struct {
 	FirstName string  `json:"firstname,omitempty"`
 	LastName  string  `json:"lastname,omitempty"`
 	Role      int  `json:"role,omitempty"`
+	ID      string    `json:"id"`
 }
 
 const (
@@ -219,6 +220,7 @@ func (u *User) Login(userLogin UserLogin) (*TokenResponse, *CodeInfo) {
 		FirstName: user.FirstName,
 		LastName: user.LastName,
 		Role: user.Role,
+		ID: user.ID,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString([]byte(beego.AppConfig.String("jwt::key")))

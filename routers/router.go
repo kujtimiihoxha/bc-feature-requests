@@ -46,6 +46,11 @@ func init() {
 			// Delete product area
 			beego.NSRouter("/:id", &controllers.ProductAreaController{}, "delete:Delete"),
 		),
+		beego.NSNamespace("/feature-requests",
+			beego.NSBefore(controllers.MustBeAuthenticated),
+			beego.NSRouter("/", &controllers.FeatureRequestController{}, "post:Post"),
+
+		),
 		// Users endpoint
 		beego.NSNamespace("/users",
 			// Must be authenticated

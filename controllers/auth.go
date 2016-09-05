@@ -50,6 +50,9 @@ func (a *AuthController) Login() {
 }
 
 func MustBeAuthenticated(ctx *context.Context)  {
+	if ctx.Request.Method == "OPTIONS"{
+		return
+	}
 	if (beego.BConfig.RunMode == "test"){
 		return
 	}
