@@ -4,6 +4,9 @@ import (
 	r "github.com/dancannon/gorethink"
 	"time"
 	"github.com/kujtimiihoxha/bc-feature-requests/db"
+	"github.com/kujtimiihoxha/bc-feature-requests/helpers"
+	"fmt"
+	"github.com/bradfitz/slice"
 )
 
 /*
@@ -29,7 +32,7 @@ type FeatureRequest struct {
 	ProductAreaId string    `gorethink:"product_area_id,omitempty" json:"product_area_id"`
 	EmployID      string    `gorethink:"employ_id,omitempty" json:"employ_id"`
 	Closed        bool    `gorethink:"closed" json:"closed"`
-	Clients       []ClientFeatureRequest  `gorethink:"-" json:"-"`
+	Clients       []ClientFeatureRequest  `gorethink:"-" json:"clients"`
 }
 // The feature requests table name.
 const feature_requests_table = "feature_requests"
@@ -102,7 +105,53 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 	if err != nil {
 		return FeatureRequestFilterResponse{}, ErrorInfo(ErrSystem, err.Error())
 	}
-
+	for i,v := range feature_requests {
+		feature_requests[i].Clients = []ClientFeatureRequest{}
+		clientRewRes, err := r.Table(client_feature_request_table).Filter(
+			r.Row.Field("feature_request_id").Eq(v.ID)).Run(db.GetSession().(r.QueryExecutor))
+		if err != nil {
+			return FeatureRequestFilterResponse{}, ErrorInfo(ErrSystem, err.Error())
+		}
+		if !clientRewRes.IsNil() {
+			clientRewRes.All(&feature_requests[i].Clients)
+		}
+	}
+	if filter.ClientPriorityDir != "" && filter.Client != ""{
+		if filter.ClientPriorityDir == "asc" {
+			slice.Sort(feature_requests[:], func(i, j int) bool {
+				var iClient ClientFeatureRequest;
+				var jClient ClientFeatureRequest;
+				for _,v :=  range feature_requests[i].Clients {
+					if v.ClientId == filter.Client {
+						iClient = v
+					}
+				}
+				for _,v :=  range feature_requests[j].Clients {
+					if v.ClientId == filter.Client {
+						jClient = v
+					}
+				}
+				return iClient.Priority > jClient.Priority
+			})
+		}
+		if filter.ClientPriorityDir == "desc" {
+			slice.Sort(feature_requests[:], func(i, j int) bool {
+				var iClient ClientFeatureRequest;
+				var jClient ClientFeatureRequest;
+				for _,v :=  range feature_requests[i].Clients {
+					if v.ClientId == filter.Client {
+						iClient = v
+					}
+				}
+				for _,v :=  range feature_requests[j].Clients {
+					if v.ClientId == filter.Client {
+						jClient = v
+					}
+				}
+				return iClient.Priority < jClient.Priority
+			})
+		}
+	}
 	return FeatureRequestFilterResponse{
 		feature_requests,
 		total,
@@ -113,8 +162,9 @@ func generateFeatureRequestQuery(filter *FeatureRequestFilter) (interface{}, *Co
 	filterStatements := []interface{}{}
 	if filter.Client != "" {
 		fr_match := []ClientFeatureRequest{};
-		c_frRes, err := r.Table(client_feature_request_table).Filter(
-			r.Row.Field("client_id").Eq(filter.Client)).Pluck("feature_request_id").Run(db.GetSession().(r.QueryExecutor))
+		query := r.Table(client_feature_request_table).Filter(
+			r.Row.Field("client_id").Eq(filter.Client));
+		c_frRes, err := query.Run(db.GetSession().(r.QueryExecutor))
 		if err != nil {
 			return filterStatements, ErrorInfo(ErrSystem, err.Error())
 		}
@@ -123,8 +173,14 @@ func generateFeatureRequestQuery(filter *FeatureRequestFilter) (interface{}, *Co
 			return filterStatements, ErrorInfo(ErrSystem, err.Error())
 		}
 		statements := []interface{}{}
+		ids := []interface{}{}
 		for _, v := range fr_match {
-			statements = append(statements, r.Row.Field("id").Eq(v.FeatureRequestId))
+			ids = append(ids,v.FeatureRequestId)
+		}
+		fmt.Println(fr_match)
+		helpers.RemoveDuplicates(&ids)
+		for _,v := range ids {
+			statements = append(statements, r.Row.Field("id").Eq(v))
 		}
 		filterStatements = append(filterStatements, r.Or(statements...))
 	}

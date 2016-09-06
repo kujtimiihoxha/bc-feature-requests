@@ -61,11 +61,11 @@ func init() {
 			// Update user (only firstname and password)
 			beego.NSRouter("/:username", &controllers.UserController{}, "put:Update"),
 			// Get all client
-			beego.NSRouter("/", &controllers.ClientController{}, "get:Get"),
+			beego.NSRouter("/", &controllers.UserController{}, "get:Get"),
 			// Get client by ID
-			beego.NSRouter("/:id", &controllers.ClientController{}, "get:GetByID"),
+			beego.NSRouter("/:id", &controllers.UserController{}, "get:GetByID"),
 			// Delete client
-			beego.NSRouter("/:id", &controllers.ClientController{}, "delete:Delete"),
+			beego.NSRouter("/:id", &controllers.UserController{}, "delete:Delete"),
 		),
 		// Authentication endpoint
 		beego.NSNamespace("/auth",

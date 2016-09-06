@@ -68,6 +68,7 @@ func (fr *FeatureRequestController) ParseFilter() models.FeatureRequestFilter {
 		Closed:cl,
 		Employ:fr.GetString("employ"),
 		ProductArea:fr.GetString("product_area"),
+		ClientPriorityDir:fr.GetString("priority_dir"),
 		FeatureRequestSort:models.FeatureRequestSort{
 			Dir:fr.GetString("dir"),
 			Field:fr.GetString("field"),

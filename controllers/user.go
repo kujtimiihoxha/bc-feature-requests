@@ -12,12 +12,12 @@ type UserController struct {
 }
 
 func (c *UserController) Get() {
-	res := c.AdminAccessOnly()
-	if res != nil {
-		beego.Debug("No Access", res)
-		c.RetError(res)
-		return
-	}
+	//res := c.AdminAccessOnly()
+	//if res != nil {
+	//	beego.Debug("No Access", res)
+	//	c.RetError(res)
+	//	return
+	//}
 	users, result := models.GetAllUsers()
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {

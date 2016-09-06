@@ -30,6 +30,7 @@ type FeatureRequestFilter struct {
 	FeatureRequestPagination
 	Employ string `json:"employ"`
 	Client string `json:"client"`
+	ClientPriorityDir string `json:"priority_dir"`
 	Closed int `json:"closed"`
 	ProductArea string `json:"product_area"`
 
