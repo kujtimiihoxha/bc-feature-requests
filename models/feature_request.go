@@ -24,11 +24,12 @@ type FeatureRequest struct {
 	BaseModel
 	Title         string    `gorethink:"title,omitempty" json:"title"`
 	Description   string    `gorethink:"description,omitempty" json:"description"`
-	TargetDate    string   `gorethink:"target_date,omitempty" json:"target_date"`
+	TargetDate    *time.Time   `gorethink:"target_date,omitempty" json:"target_date"`
 	TicketUrl     string    `gorethink:"ticket_url,omitempty" json:"ticket_url"`
 	ProductAreaId string    `gorethink:"product_area_id,omitempty" json:"product_area_id"`
 	EmployID      string    `gorethink:"employ_id,omitempty" json:"employ_id"`
-	Clients     []ClientFeatureRequest  `gorethink:"-" json:"-"`
+	Closed        bool    `gorethink:"closed" json:"closed"`
+	Clients       []ClientFeatureRequest  `gorethink:"-" json:"-"`
 }
 // The feature requests table name.
 const feature_requests_table = "feature_requests"
@@ -48,19 +49,100 @@ func NewFeatureRequest(fr *FeatureRequestCreate, t time.Time, employID string) *
 		TicketUrl: fr.TicketUrl,
 		Clients:[]ClientFeatureRequest{},
 		TargetDate: fr.TargetDate,
+		Closed: false,
 		BaseModel: BaseModel{
 			CreatedAt: &t,
 		},
 	}
-	for _,v:= range fr.Clients {
-		frc.Clients = append(frc.Clients,ClientFeatureRequest{
+	for _, v := range fr.Clients {
+		frc.Clients = append(frc.Clients, ClientFeatureRequest{
 			ClientId: v.ClientId,
 			Priority: v.Priority,
 		})
 	}
 	return frc
 }
+// Get all clients from the DB.
+// Returns:
+// 	- Array of clients (or empty if there are no clients in the DB).
+// 	- CodeInfo with the error information.
+func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequestFilterResponse, *CodeInfo) {
+	feature_requests := []FeatureRequest{}
+	statements, errC := generateFeatureRequestQuery(filter)
+	if errC.Code != 0 {
+		return FeatureRequestFilterResponse{}, errC
+	}
+	total := 0
+	cntRm, err := r.Table(feature_requests_table).Filter(statements).Count().Run(db.GetSession().(r.QueryExecutor))
+	cntRm.One(&total)
+	var result *r.Cursor;
+	term := r.Table(feature_requests_table).Filter(statements)
+	if filter.Skip != 0 {
+		term = term.Skip(filter.Skip)
+	}
+	if filter.Get != 0 {
+		term = term.Limit(filter.Get)
+	}
+	if filter.Field != "" {
+		if filter.Dir != "" {
+			if filter.Dir == "asc" {
+				term = term.OrderBy(r.Asc(filter.Field))
+			} else if filter.Dir == "desc" {
+				term = term.OrderBy(r.Desc(filter.Field))
+			}
+		} else {
+			term = term.OrderBy(filter.Field)
+		}
+	}
+	result, err = term.Run(db.GetSession().(r.QueryExecutor))
+	if err != nil {
+		return FeatureRequestFilterResponse{}, ErrorInfo(ErrSystem, err.Error())
+	}
+	err = result.All(&feature_requests)
+	if err != nil {
+		return FeatureRequestFilterResponse{}, ErrorInfo(ErrSystem, err.Error())
+	}
 
+	return FeatureRequestFilterResponse{
+		feature_requests,
+		total,
+	}, errC
+}
+
+func generateFeatureRequestQuery(filter *FeatureRequestFilter) (interface{}, *CodeInfo) {
+	filterStatements := []interface{}{}
+	if filter.Client != "" {
+		fr_match := []ClientFeatureRequest{};
+		c_frRes, err := r.Table(client_feature_request_table).Filter(
+			r.Row.Field("client_id").Eq(filter.Client)).Pluck("feature_request_id").Run(db.GetSession().(r.QueryExecutor))
+		if err != nil {
+			return filterStatements, ErrorInfo(ErrSystem, err.Error())
+		}
+		err = c_frRes.All(&fr_match)
+		if err != nil {
+			return filterStatements, ErrorInfo(ErrSystem, err.Error())
+		}
+		statements := []interface{}{}
+		for _, v := range fr_match {
+			statements = append(statements, r.Row.Field("id").Eq(v.FeatureRequestId))
+		}
+		filterStatements = append(filterStatements, r.Or(statements...))
+	}
+	if filter.Closed != 0 {
+		if filter.Closed == 1 {
+			filterStatements = append(filterStatements, r.Row.Field("closed").Eq(true))
+		} else if filter.Closed == 2 {
+			filterStatements = append(filterStatements, r.Row.Field("closed").Eq(false))
+		}
+	}
+	if filter.Employ != "" {
+		filterStatements = append(filterStatements, r.Row.Field("employ_id").Eq(filter.Employ))
+	}
+	if filter.ProductArea != "" {
+		filterStatements = append(filterStatements, r.Row.Field("product_area_id").Eq(filter.ProductArea))
+	}
+	return r.And(filterStatements...), OkInfo("")
+}
 // Insert new feature request.
 // Feature request should have data before calling this method.
 // Error :
@@ -89,10 +171,10 @@ func (c *FeatureRequest) Insert() *CodeInfo {
 	return result
 }
 
-func CheckPriority(cp  ClientFeatureRequest)  *CodeInfo{
+func CheckPriority(cp  ClientFeatureRequest) *CodeInfo {
 	c_fr := ClientFeatureRequest{}
 	c_frRes, err := r.Table(client_feature_request_table).Filter(r.And(r.Row.Field("client_id").Eq(
-		cp.ClientId), r.Row.Field("priority").Eq(cp.Priority),r.Row.Field("id").Ne(cp.ID))).Run(db.GetSession().(r.QueryExecutor))
+		cp.ClientId), r.Row.Field("priority").Eq(cp.Priority), r.Row.Field("id").Ne(cp.ID))).Run(db.GetSession().(r.QueryExecutor))
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}

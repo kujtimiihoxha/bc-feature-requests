@@ -60,7 +60,7 @@ func (c *ProductAreaController) Post() {
 		return
 	}
 	beego.Debug("Parsed ProductAreaEdit:", &inData)
-	createdAt := time.Now()
+	createdAt := time.Now().UTC()
 	product_area := models.NewProductArea(&inData, createdAt)
 	result := product_area.Insert()
 	if result.Code != 0 {
@@ -123,7 +123,7 @@ func (c *ProductAreaController) Update() {
 	}
 	beego.Debug("Parsed ProductAreaeEdit:", &inData)
 	product_area := models.ProductArea{}
-	result := product_area.Update(c.Ctx.Input.Param(":id"), &inData, time.Now())
+	result := product_area.Update(c.Ctx.Input.Param(":id"), &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)

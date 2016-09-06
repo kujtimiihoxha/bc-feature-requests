@@ -31,7 +31,7 @@ func (fr *FeatureRequestController) Post() {
 		return
 	}
 	beego.Debug("Parsed ClientCreateEdit:", &inData)
-	createdAt := time.Now()
+	createdAt := time.Now().UTC()
 	featureRequest := models.NewFeatureRequest(&inData, createdAt,token.Claims.(jwt.MapClaims)["id"].(string))
 	result := featureRequest.Insert()
 	if result.Code != 0 {
@@ -45,4 +45,36 @@ func (fr *FeatureRequestController) Post() {
 	}
 	fr.Data["json"] = featureRequest
 	fr.ServeJSON()
+}
+func (fr *FeatureRequestController) Get() {
+	filter := fr.ParseFilter()
+
+	feature_requests,result := models.GetFeatureRequestByFilterSort(&filter)
+	if result.Code != 0 {
+		if result.Code == models.ErrSystem {
+			fr.RetError(errSystem)
+			return
+		}
+	}
+	fr.Data["json"] = feature_requests
+	fr.ServeJSON()
+}
+func (fr *FeatureRequestController) ParseFilter() models.FeatureRequestFilter {
+	cl,_ := fr.GetInt("closed");
+	skip,_ := fr.GetInt("skip");
+	get,_ := fr.GetInt("get");
+	return models.FeatureRequestFilter{
+		Client:fr.GetString("client"),
+		Closed:cl,
+		Employ:fr.GetString("employ"),
+		ProductArea:fr.GetString("product_area"),
+		FeatureRequestSort:models.FeatureRequestSort{
+			Dir:fr.GetString("dir"),
+			Field:fr.GetString("field"),
+		},
+		FeatureRequestPagination: models.FeatureRequestPagination{
+			Skip: skip,
+			Get: get,
+		},
+	}
 }

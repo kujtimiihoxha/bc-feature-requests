@@ -60,7 +60,7 @@ func (c *ClientController) Post() {
 		return
 	}
 	beego.Debug("Parsed ClientCreateEdit:", &inData)
-	createdAt := time.Now()
+	createdAt := time.Now().UTC()
 	client := models.NewClient(&inData, createdAt)
 	result := client.Insert()
 	if result.Code != 0 {
@@ -123,7 +123,7 @@ func (c *ClientController) Update() {
 	}
 	beego.Debug("Parsed ClientCreateEdit:", &inData)
 	client := models.Client{}
-	result := client.Update(c.Ctx.Input.Param(":id"), &inData, time.Now())
+	result := client.Update(c.Ctx.Input.Param(":id"), &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)

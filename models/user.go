@@ -212,7 +212,7 @@ func (u *User) Login(userLogin UserLogin) (*TokenResponse, *CodeInfo) {
 	v, _ := beego.AppConfig.Int("jwt::hours");
 	claims := &Claims{
 		StandardClaims : jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * time.Duration(v)).Unix(),
+			ExpiresAt: time.Now().UTC().Add(time.Hour * time.Duration(v)).Unix(),
 			Issuer:    "bc",
 		},
 		Username: user.Username,

@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http/httptest"
-	"github.com/iris-contrib/errors"
+	"errors"
 	"github.com/kujtimiihoxha/bc-feature-requests/db"
 	"time"
 	"reflect"
@@ -149,7 +149,7 @@ func TestInsertOnlyAdmin(t *testing.T) {
 	w := httptest.NewRecorder()
 	claims := &models.Claims{
 		StandardClaims : jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+			ExpiresAt: time.Now().UTC().Add(time.Hour * 24).Unix(),
 			Issuer:    "bc",
 		},
 		Username: "username",
@@ -191,7 +191,7 @@ func TestGetAllSuccess(t *testing.T) {
 	rs, _ := http.NewRequest("GET", "/api/v1/clients", nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
-	tm := time.Now()
+	tm := time.Now().UTC()
 	dbClients := []models.Client{
 		{
 			BaseModel:models.BaseModel{
@@ -378,7 +378,7 @@ func TestDeleteOnlyAdmin(t *testing.T) 	{
 	w := httptest.NewRecorder()
 	claims := &models.Claims{
 		StandardClaims : jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+			ExpiresAt: time.Now().UTC().Add(time.Hour * 24).Unix(),
 			Issuer:    "bc",
 		},
 		Username: "username",

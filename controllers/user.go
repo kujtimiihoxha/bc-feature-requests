@@ -72,7 +72,7 @@ func (c *UserController) Post() {
 		return
 	}
 	beego.Debug("Parsed UserRegister:", &inData)
-	createdAt := time.Now()
+	createdAt := time.Now().UTC()
 	user, result := models.NewUser(&inData, createdAt)
 	if result.Code != 0 {
 		if result.Code == models.ErrPasswordMismatch || result.Code == models.ErrEmailExists || result.Code == models.ErrUsernameExists {
@@ -144,7 +144,7 @@ func (c *UserController) Update() {
 	}
 	beego.Debug("Parsed UserCreateEdit:", &inData)
 	user := models.User{}
-	result := user.Update(c.Ctx.Input.Param(":username"), &inData, time.Now())
+	result := user.Update(c.Ctx.Input.Param(":username"), &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)

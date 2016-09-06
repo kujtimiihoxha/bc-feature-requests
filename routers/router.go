@@ -49,6 +49,7 @@ func init() {
 		beego.NSNamespace("/feature-requests",
 			beego.NSBefore(controllers.MustBeAuthenticated),
 			beego.NSRouter("/", &controllers.FeatureRequestController{}, "post:Post"),
+			beego.NSRouter("/", &controllers.FeatureRequestController{}, "get:Get"),
 
 		),
 		// Users endpoint

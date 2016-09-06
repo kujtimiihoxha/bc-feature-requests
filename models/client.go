@@ -16,8 +16,8 @@ import (
 // UpdatedAt: The date of the last update
 type Client struct {
 	BaseModel
-	Name        string    `gorethink:"name,omitempty" json:"name"`
-	Description string    `gorethink:"description,omitempty" json:"description"`
+	Name           string    `gorethink:"name,omitempty" json:"name"`
+	Description    string    `gorethink:"description,omitempty" json:"description"`
 }
 
 // The clients table name.
@@ -42,12 +42,12 @@ func NewClient(client *ClientCreate, t time.Time) *Client {
 // Returns:
 // 	- Array of clients (or empty if there are no clients in the DB).
 // 	- CodeInfo with the error information.
-func GetAllClients() ([]Client,*CodeInfo ){
+func GetAllClients() ([]Client, *CodeInfo) {
 	clients := []Client{}
-	result := getAll(client_table,&clients)
+	result := getAll(client_table, &clients)
+
 	return clients, result
 }
-
 // Get client by id.
 // Error :
 // 	- Returns CodeInfo with the error information.
@@ -55,7 +55,7 @@ func GetAllClients() ([]Client,*CodeInfo ){
 //     - Fills the data of the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
 func (c *Client) GetById(id string) *CodeInfo {
-	return  c.getById(client_table,id,c)
+	return c.getById(client_table, id, c)
 }
 
 // Insert new client.
@@ -67,8 +67,8 @@ func (c *Client) GetById(id string) *CodeInfo {
 //     - Returns CodeInfo with Code = 0 (No error)
 
 func (c *Client) Insert() *CodeInfo {
-	id, result := c.insert(client_table,c)
-	c.ID =id
+	id, result := c.insert(client_table, c)
+	c.ID = id
 	return result
 }
 
@@ -78,10 +78,10 @@ func (c *Client) Insert() *CodeInfo {
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *Client) Update(id string, data * ClientEdit, t time.Time) *CodeInfo {
+func (c *Client) Update(id string, data *ClientEdit, t time.Time) *CodeInfo {
 	c.setFromClientEdit(data)
 	c.UpdatedAt = &t
-	return c.update(client_table,id,c)
+	return c.update(client_table, id, c)
 }
 
 // Delete client by id.
@@ -91,11 +91,11 @@ func (c *Client) Update(id string, data * ClientEdit, t time.Time) *CodeInfo {
 //     - Fills the deleted data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
 func (c *Client) Delete(id string) *CodeInfo {
-	return c.delete(client_table,id,c)
+	return c.delete(client_table, id, c)
 }
 
 // Set Client data from ClientEdit model.
-func (c *Client) setFromClientEdit(data *ClientEdit)  {
+func (c *Client) setFromClientEdit(data *ClientEdit) {
 	c.Name = data.Name
 	c.Description = data.Description
 }
