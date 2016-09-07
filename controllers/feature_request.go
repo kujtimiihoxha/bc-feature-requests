@@ -46,6 +46,25 @@ func (fr *FeatureRequestController) Post() {
 	fr.Data["json"] = featureRequest
 	fr.ServeJSON()
 }
+
+
+func (c *FeatureRequestController) GetByID() {
+	featureRequest := models.FeatureRequest{}
+	result := featureRequest.GetById(c.Ctx.Input.Param(":id"))
+	if result.Code != 0 {
+		if result.Code == models.ErrSystem {
+			c.RetError(errSystem)
+			return
+		} else if result.Code == models.ErrNotFound {
+			e := err404
+			e.MoreInfo = "FeatureRequest with this ID could not be found"
+			c.RetError(e)
+			return
+		}
+	}
+	c.Data["json"] = featureRequest
+	c.ServeJSON()
+}
 func (fr *FeatureRequestController) Get() {
 	filter := fr.ParseFilter()
 

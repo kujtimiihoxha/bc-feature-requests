@@ -50,6 +50,7 @@ func init() {
 			beego.NSBefore(controllers.MustBeAuthenticated),
 			beego.NSRouter("/", &controllers.FeatureRequestController{}, "post:Post"),
 			beego.NSRouter("/", &controllers.FeatureRequestController{}, "get:Get"),
+			beego.NSRouter("/:id", &controllers.FeatureRequestController{}, "get:GetByID"),
 
 		),
 		// Users endpoint

@@ -7,6 +7,7 @@ import (
 	"github.com/kujtimiihoxha/bc-feature-requests/helpers"
 	"fmt"
 	"github.com/bradfitz/slice"
+	"strings"
 )
 
 /*
@@ -26,6 +27,7 @@ import (
 type FeatureRequest struct {
 	BaseModel
 	Title         string    `gorethink:"title,omitempty" json:"title"`
+	TitleNormalized         string    `gorethink:"title_normalized,omitempty" json:"-"`
 	Description   string    `gorethink:"description,omitempty" json:"description"`
 	TargetDate    *time.Time   `gorethink:"target_date,omitempty" json:"target_date"`
 	TicketUrl     string    `gorethink:"ticket_url,omitempty" json:"ticket_url"`
@@ -46,6 +48,7 @@ const feature_requests_table = "feature_requests"
 func NewFeatureRequest(fr *FeatureRequestCreate, t time.Time, employID string) *FeatureRequest {
 	frc := &FeatureRequest{
 		Title: fr.Title,
+		TitleNormalized: strings.ToLower(fr.Title),
 		Description: fr.Description,
 		EmployID: employID,
 		ProductAreaId: fr.ProductAreaId,
@@ -55,6 +58,7 @@ func NewFeatureRequest(fr *FeatureRequestCreate, t time.Time, employID string) *
 		Closed: false,
 		BaseModel: BaseModel{
 			CreatedAt: &t,
+			UpdatedAt: &t,
 		},
 	}
 	for _, v := range fr.Clients {
@@ -80,12 +84,6 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 	cntRm.One(&total)
 	var result *r.Cursor;
 	term := r.Table(feature_requests_table).Filter(statements)
-	if filter.Skip != 0 {
-		term = term.Skip(filter.Skip)
-	}
-	if filter.Get != 0 {
-		term = term.Limit(filter.Get)
-	}
 	if filter.Field != "" {
 		if filter.Dir != "" {
 			if filter.Dir == "asc" {
@@ -97,6 +95,13 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 			term = term.OrderBy(filter.Field)
 		}
 	}
+	if filter.Skip != 0 {
+		term = term.Skip(filter.Skip)
+	}
+	if filter.Get != 0 {
+		term = term.Limit(filter.Get)
+	}
+
 	result, err = term.Run(db.GetSession().(r.QueryExecutor))
 	if err != nil {
 		return FeatureRequestFilterResponse{}, ErrorInfo(ErrSystem, err.Error())
@@ -199,6 +204,30 @@ func generateFeatureRequestQuery(filter *FeatureRequestFilter) (interface{}, *Co
 	}
 	return r.And(filterStatements...), OkInfo("")
 }
+
+// Get client by id.
+// Error :
+// 	- Returns CodeInfo with the error information.
+// Success :
+//     - Fills the data of the model calling the method.
+//     - Returns CodeInfo with Code = 0 (No error)
+func (c *FeatureRequest) GetById(id string) *CodeInfo {
+	ci:=c.getById(feature_requests_table, id, c)
+	if ci.Code != 0 {
+		return  ci
+	}
+	c.Clients = []ClientFeatureRequest{}
+	clientRewRes, err := r.Table(client_feature_request_table).Filter(
+		r.Row.Field("feature_request_id").Eq(c.ID)).Run(db.GetSession().(r.QueryExecutor))
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	if !clientRewRes.IsNil() {
+		clientRewRes.All(&c.Clients)
+	}
+	return ci
+}
+
 // Insert new feature request.
 // Feature request should have data before calling this method.
 // Error :
