@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"time"
 	"github.com/astaxie/beego"
+	"strings"
 )
 /*
  User model.
@@ -55,8 +56,8 @@ func NewUser(user *UserRegister, t time.Time) (*User, *CodeInfo) {
 	u := &User{
 		FirstName: user.FirstName,
 		LastName: user.LastName,
-		Email: user.Email,
-		Username: user.Username,
+		Email: strings.ToLower(user.Email),
+		Username: strings.ToLower(user.Username),
 		Role: EMPLOY,
 		BaseModel: BaseModel{
 			CreatedAt: &t,
@@ -196,8 +197,8 @@ func (u *User) validateRegistration(user *UserRegister) *CodeInfo {
 func (u *User) Login(userLogin UserLogin) (*TokenResponse, *CodeInfo) {
 	user := User{}
 	userResponse, err := r.Table(user_table).Filter(
-		r.Or(r.Row.Field("username").Eq(userLogin.UsernameEmail),
-			r.Row.Field("email").Eq(userLogin.UsernameEmail))).Run(u.Session())
+		r.Or(r.Row.Field("username").Eq(strings.ToLower(userLogin.UsernameEmail)),
+			r.Row.Field("email").Eq(strings.ToLower(userLogin.UsernameEmail)))).Run(u.Session())
 	if err != nil {
 		return nil, ErrorInfo(ErrSystem, err.Error())
 	}

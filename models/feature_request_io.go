@@ -21,6 +21,22 @@ type FeatureRequestCreate struct {
 		Priority int `json:"priority"   valid:"required"`
 	}  `json:"clients"  valid:"required"`
 }
+type FeatureRequestEditTargetDate struct {
+	TargetDate   *time.Time   `json:"target_date" valid:"required"`
+}
+type FeatureRequestEditDetails struct {
+	Title         string    `json:"title" valid:"ascii,required"`
+	Description   string    `json:"description" valid:"ascii,required"`
+	TicketUrl     string    `json:"ticket_url"  valid:"url,required"`
+	ProductAreaId string    `json:"product_area_id"   valid:"uuid,required"`
+}
+type  FeatureRequestAddRemoveClients struct {
+	ClientsToAdd []struct{
+		Client_id string  `json:"id"   valid:"uuid,required"`
+		Priority int `json:"priority"   valid:"required"`
+	}  `json:"clients_to_add"`
+	ClientsToRemove []string `json:"clients_to_remove"`
+}
 type FeatureRequestFilterResponse struct {
 	Data []FeatureRequest `json:"data"`
 	Total int `json:"total"`

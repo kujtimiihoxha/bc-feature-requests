@@ -218,7 +218,7 @@ func (c *FeatureRequest) GetById(id string) *CodeInfo {
 	}
 	c.Clients = []ClientFeatureRequest{}
 	clientRewRes, err := r.Table(client_feature_request_table).Filter(
-		r.Row.Field("feature_request_id").Eq(c.ID)).Run(db.GetSession().(r.QueryExecutor))
+		r.Row.Field("feature_request_id").Eq(c.ID)).Run(c.Session())
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
@@ -226,6 +226,95 @@ func (c *FeatureRequest) GetById(id string) *CodeInfo {
 		clientRewRes.All(&c.Clients)
 	}
 	return ci
+}
+
+
+// Update feature request target date.
+// Error :
+// 	- Returns CodeInfo with the error information.
+// Success :
+//     - Fills the updated data to the model calling the method.
+//     - Returns CodeInfo with Code = 0 (No error)
+func (c *FeatureRequest) UpdateTargetDate(id string, data *FeatureRequestEditTargetDate, t time.Time) *CodeInfo {
+	c.setFromFeatureRequestEditTargetDate(data)
+	fmt.Println(c)
+	c.UpdatedAt = &t
+	return c.update(feature_requests_table, id, c)
+}
+// Update feature request details.
+// Error :
+// 	- Returns CodeInfo with the error information.
+// Success :
+//     - Fills the updated data to the model calling the method.
+//     - Returns CodeInfo with Code = 0 (No error)
+func (c *FeatureRequest) UpdateDetails(id string, data *FeatureRequestEditDetails, t time.Time) *CodeInfo {
+	c.setFromFeatureRequestEditDetails(data)
+	fmt.Println(c)
+	c.UpdatedAt = &t
+	return c.update(feature_requests_table, id, c)
+}
+
+// Update feature request state.
+// Error :
+// 	- Returns CodeInfo with the error information.
+// Success :
+//     - Fills the updated data to the model calling the method.
+//     - Returns CodeInfo with Code = 0 (No error)
+func (c *FeatureRequest) UpdateState(id string, state bool, t time.Time) *CodeInfo {
+	c.Closed = state
+	c.UpdatedAt = &t
+	return c.update(feature_requests_table, id, c)
+}
+
+// Add Remove Clients
+// Error :
+// 	- Returns CodeInfo with the error information.
+// Success :
+//     - Fills the updated data to the model calling the method.
+//     - Returns CodeInfo with Code = 0 (No error)
+func (c *FeatureRequest) AddRemoveClients(id string, addRemove *FeatureRequestAddRemoveClients, t time.Time) *CodeInfo {
+	if len(addRemove.ClientsToRemove) > 0 {
+		statements := []interface{}{}
+		for _,v := range addRemove.ClientsToRemove {
+			statements = append(statements,r.Row.Field("client_id").Eq(v))
+		}
+		wr,err := r.Table(client_feature_request_table).Filter(r.And(r.Or(statements...),r.Row.Field("feature_request_id").Eq(id))).Delete().RunWrite(c.Session())
+
+		if wr.Errors > 0 {
+			return ErrorInfo(ErrDatabase, wr.FirstError)
+		}
+		if err != nil {
+			return  ErrorInfo(ErrSystem, err.Error())
+		}
+	}
+	clientsToAdd:=[]*ClientFeatureRequest{}
+	for _,v:= range addRemove.ClientsToAdd {
+		clientFR := NewClientFeatureRequest(id,v.Client_id,v.Priority,time.Now().UTC());
+		CheckPriority(*clientFR)
+		clientsToAdd = append(clientsToAdd,clientFR)
+	}
+	wr,err := r.Table(client_feature_request_table).Insert(clientsToAdd).RunWrite(c.Session())
+
+	if wr.Errors > 0 {
+		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	c.UpdatedAt = &t
+	result := c.update(feature_requests_table, id, c)
+	if result.Code != 0 {
+		return  result
+	}
+	clientRewRes, err := r.Table(client_feature_request_table).Filter(
+		r.Row.Field("feature_request_id").Eq(c.ID)).Run(c.Session())
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	if !clientRewRes.IsNil() {
+		clientRewRes.All(&c.Clients)
+	}
+	return OkInfo("")
 }
 
 // Insert new feature request.
@@ -241,18 +330,15 @@ func (c *FeatureRequest) Insert() *CodeInfo {
 		CheckPriority(v)
 	}
 	id, result := c.insert(feature_requests_table, c)
-	c.ID = id
-	for _, v := range c.Clients {
-		cfr := ClientFeatureRequest{
-			FeatureRequestId: c.ID,
-			ClientId: v.ClientId,
-			Priority: v.Priority,
-		}
-		_, result = c.insert(client_feature_request_table, cfr)
-		if result.Code != 0 {
-			return result
-		}
+	if result.Code != 0 {
+		return result
 	}
+	c.ID = id
+	cfrs:=[]*ClientFeatureRequest{}
+	for _,v:= range c.Clients{
+		cfrs = append(cfrs,NewClientFeatureRequest(c.ID,v.ClientId, v.Priority,time.Now().UTC()))
+	}
+	_, result = c.insert(client_feature_request_table, cfrs)
 	return result
 }
 
@@ -277,4 +363,16 @@ func CheckPriority(cp  ClientFeatureRequest) *CodeInfo {
 		return ErrorInfo(ErrDatabase, wr.FirstError)
 	}
 	return CheckPriority(c_fr)
+}
+
+// Set FeatureRequest data from FeatureRequestEditTargetDate model.
+func (c *FeatureRequest) setFromFeatureRequestEditTargetDate(data *FeatureRequestEditTargetDate) {
+	c.TargetDate = data.TargetDate
+}
+// Set FeatureRequest data from FeatureRequestEditTargetDate model.
+func (c *FeatureRequest) setFromFeatureRequestEditDetails(data *FeatureRequestEditDetails) {
+	c.Title = data.Title
+	c.Description = data.Description
+	c.TicketUrl = data.TicketUrl
+	c.ProductAreaId = data.ProductAreaId
 }
