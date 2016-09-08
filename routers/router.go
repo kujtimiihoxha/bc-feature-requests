@@ -55,6 +55,7 @@ func init() {
 			beego.NSRouter("/:id", &controllers.FeatureRequestController{}, "put:UpdateDetails"),
 			beego.NSRouter("/:id/state/:state", &controllers.FeatureRequestController{}, "put:UpdateState"),
 			beego.NSRouter("/:id/clients", &controllers.FeatureRequestController{}, "post:AddRemoveClients"),
+			beego.NSRouter("/:id/comments", &controllers.FeatureRequestController{}, "post:AddComment"),
 
 		),
 		// Users endpoint

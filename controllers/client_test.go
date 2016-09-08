@@ -16,6 +16,8 @@ import (
 	"time"
 	"reflect"
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
+	"fmt"
 )
 
 var clients_table = "clients"
@@ -390,4 +392,16 @@ func TestDeleteOnlyAdmin(t *testing.T) 	{
 	beego.BConfig.RunMode = "dev"
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	NotAuthorized(w,t)
+}
+
+func TestTest(t *testing.T)  {
+	d,_ :=bcrypt.GenerateFromPassword([]byte("employ1@123"),bcrypt.DefaultCost)
+	fmt.Println(string(d))
+	d,_  =bcrypt.GenerateFromPassword([]byte("employ2@123"),bcrypt.DefaultCost)
+	fmt.Println(string(d))
+	d,_  =bcrypt.GenerateFromPassword([]byte("employ3@123"),bcrypt.DefaultCost)
+	fmt.Println(string(d))
+	//if err != nil {
+	//	return ErrorInfo(ErrSystem,err.Error())
+	//}
 }

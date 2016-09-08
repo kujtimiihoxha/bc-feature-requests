@@ -5,6 +5,8 @@ import (
 	"github.com/asaskevich/govalidator"
 	"github.com/astaxie/beego/context"
 	"encoding/json"
+	"github.com/kujtimiihoxha/bc-feature-requests/models"
+	"github.com/dgrijalva/jwt-go"
 )
 
 // BaseController.
@@ -23,6 +25,17 @@ func (base *BaseController) RetError(e *ControllerError) {
 	base.Data["json"] = e
 	base.ServeJSON()
 	base.StopRun()
+}
+func (base *BaseController)User() *models.User {
+	user := &models.User{}
+	token,err:=ParseToken(base.Ctx)
+	if err != nil {
+		return user
+	}
+	user.Role = int(token.Claims.(jwt.MapClaims)["role"].(float64))
+	user.Username = token.Claims.(jwt.MapClaims)["username"].(string)
+	user.ID = token.Claims.(jwt.MapClaims)["id"].(string)
+	return user
 }
 func (base *BaseController) ValidateInput(i interface{}) (bool, *ControllerError) {
 	isValid,err := govalidator.ValidateStruct(i)

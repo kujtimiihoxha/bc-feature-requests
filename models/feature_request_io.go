@@ -24,11 +24,16 @@ type FeatureRequestCreate struct {
 type FeatureRequestEditTargetDate struct {
 	TargetDate   *time.Time   `json:"target_date" valid:"required"`
 }
+type FeatureRequestAddComment struct {
+	UserId    string    `json:"user_id"  valid:"uuid,required"`
+	Comment    string    `json:"comment"  valid:"required"`
+}
 type FeatureRequestEditDetails struct {
 	Title         string    `json:"title" valid:"ascii,required"`
-	Description   string    `json:"description" valid:"ascii,required"`
+	Description   string    `json:"description" valid:"required"`
 	TicketUrl     string    `json:"ticket_url"  valid:"url,required"`
 	ProductAreaId string    `json:"product_area_id"   valid:"uuid,required"`
+	Modifications []string     `json:"modifications" valid:"required"`
 }
 type  FeatureRequestAddRemoveClients struct {
 	ClientsToAdd []struct{

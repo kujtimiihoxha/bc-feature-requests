@@ -35,6 +35,8 @@ type FeatureRequest struct {
 	EmployID      string    `gorethink:"employ_id,omitempty" json:"employ_id"`
 	Closed        bool    `gorethink:"closed" json:"closed"`
 	Clients       []ClientFeatureRequest  `gorethink:"-" json:"clients"`
+	Modifications       []FeatureRequestLog  `gorethink:"-" json:"modifications"`
+	Comments       []UserComment  `gorethink:"-" json:"comments"`
 }
 // The feature requests table name.
 const feature_requests_table = "feature_requests"
@@ -225,6 +227,8 @@ func (c *FeatureRequest) GetById(id string) *CodeInfo {
 	if !clientRewRes.IsNil() {
 		clientRewRes.All(&c.Clients)
 	}
+	c.getLogs()
+	c.getComments()
 	return ci
 }
 
@@ -235,11 +239,29 @@ func (c *FeatureRequest) GetById(id string) *CodeInfo {
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) UpdateTargetDate(id string, data *FeatureRequestEditTargetDate, t time.Time) *CodeInfo {
+func (c *FeatureRequest) UpdateTargetDate(id string,userId string, username string, data *FeatureRequestEditTargetDate, t time.Time) *CodeInfo {
 	c.setFromFeatureRequestEditTargetDate(data)
 	fmt.Println(c)
 	c.UpdatedAt = &t
-	return c.update(feature_requests_table, id, c)
+	result := c.update(feature_requests_table, id, c)
+	if result.Code != 0 {
+		return result
+	}
+	wr, err := r.Table(feature_request_log_table).Insert(NewFeatureRequestLog(
+		userId,
+		id,
+		TARGET_DATE,
+		ICONS[TARGET_DATE],
+		fmt.Sprintf(LOG_MESSAGES[TARGET_DATE],
+		username))).RunWrite(c.Session())
+	if wr.Errors > 0 {
+		return  ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	c.getLogs()
+	return OkInfo("Data updated succesfully")
 }
 // Update feature request details.
 // Error :
@@ -247,23 +269,71 @@ func (c *FeatureRequest) UpdateTargetDate(id string, data *FeatureRequestEditTar
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) UpdateDetails(id string, data *FeatureRequestEditDetails, t time.Time) *CodeInfo {
+func (c *FeatureRequest) UpdateDetails(id string,userId string, username string,data *FeatureRequestEditDetails,t time.Time) *CodeInfo {
 	c.setFromFeatureRequestEditDetails(data)
-	fmt.Println(c)
 	c.UpdatedAt = &t
-	return c.update(feature_requests_table, id, c)
-}
+	result := c.update(feature_requests_table, id, c)
+	if result.Code != 0 {
+		return  result
+	}
 
+	updates := []*FeatureRequestLog{}
+	for _,v := range data.Modifications {
+		updates = append(updates,NewFeatureRequestLog(userId,id,v,ICONS[v],fmt.Sprintf(LOG_MESSAGES[v],username)))
+	}
+	wr, err := r.Table(feature_request_log_table).Insert(updates).RunWrite(c.Session())
+	if wr.Errors > 0 {
+		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	c.getLogs()
+	return OkInfo("Data updated succesfully")
+}
+func (c *FeatureRequest) getLogs() *CodeInfo {
+	res,err := r.Table(feature_request_log_table).Filter(r.Row.Field("feature_request_id").Eq(c.ID)).OrderBy(r.Desc("created_at")).Run(db.GetSession().(r.QueryExecutor))
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	err = res.All(&c.Modifications)
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	return OkInfo("")
+}
 // Update feature request state.
 // Error :
 // 	- Returns CodeInfo with the error information.
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) UpdateState(id string, state bool, t time.Time) *CodeInfo {
+func (c *FeatureRequest) UpdateState(id string,userId string, username string, state bool, t time.Time) *CodeInfo {
 	c.Closed = state
 	c.UpdatedAt = &t
-	return c.update(feature_requests_table, id, c)
+	result := c.update(feature_requests_table, id, c)
+	if result.Code != 0 {
+		return result
+	}
+	stateChange := STATE_OPEN
+	if state {
+		stateChange = STATE_CLOSE
+	}
+	wr, err := r.Table(feature_request_log_table).Insert(NewFeatureRequestLog(
+		userId,
+		id,
+		stateChange,
+		ICONS[stateChange],
+		fmt.Sprintf(LOG_MESSAGES[stateChange],
+			username))).RunWrite(c.Session())
+	if wr.Errors > 0 {
+		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	c.getLogs()
+	return OkInfo("Data updated succesfully")
 }
 
 // Add Remove Clients
@@ -272,7 +342,7 @@ func (c *FeatureRequest) UpdateState(id string, state bool, t time.Time) *CodeIn
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) AddRemoveClients(id string, addRemove *FeatureRequestAddRemoveClients, t time.Time) *CodeInfo {
+func (c *FeatureRequest) AddRemoveClients(id string,userId string, username string, addRemove *FeatureRequestAddRemoveClients, t time.Time) *CodeInfo {
 	if len(addRemove.ClientsToRemove) > 0 {
 		statements := []interface{}{}
 		for _,v := range addRemove.ClientsToRemove {
@@ -314,6 +384,20 @@ func (c *FeatureRequest) AddRemoveClients(id string, addRemove *FeatureRequestAd
 	if !clientRewRes.IsNil() {
 		clientRewRes.All(&c.Clients)
 	}
+	wr, err = r.Table(feature_request_log_table).Insert(NewFeatureRequestLog(
+		userId,
+		id,
+		CHANGED_CLIENTS,
+		ICONS[CHANGED_CLIENTS],
+		fmt.Sprintf(LOG_MESSAGES[CHANGED_CLIENTS],
+			username))).RunWrite(c.Session())
+	if wr.Errors > 0 {
+		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	c.getLogs()
 	return OkInfo("")
 }
 
@@ -341,7 +425,28 @@ func (c *FeatureRequest) Insert() *CodeInfo {
 	_, result = c.insert(client_feature_request_table, cfrs)
 	return result
 }
-
+func (c *FeatureRequest) AddComment(id string,data *FeatureRequestAddComment) *CodeInfo {
+	comment := NewComment(data,id,time.Now().UTC())
+	_, result := c.insert(user_comment_table, comment)
+	fmt.Println(result)
+	if result.Code != 0 {
+		return result
+	}
+	c.ID = id
+	c.getComments()
+	return result
+}
+func (c *FeatureRequest) getComments()  *CodeInfo{
+	res,err := r.Table(user_comment_table).Filter(r.Row.Field("feature_request_id").Eq(c.ID)).OrderBy(r.Asc("created_at")).Run(db.GetSession().(r.QueryExecutor))
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	err = res.All(&c.Comments)
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	return OkInfo("")
+}
 func CheckPriority(cp  ClientFeatureRequest) *CodeInfo {
 	c_fr := ClientFeatureRequest{}
 	c_frRes, err := r.Table(client_feature_request_table).Filter(r.And(r.Row.Field("client_id").Eq(

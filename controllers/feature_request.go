@@ -5,7 +5,6 @@ import (
 	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	"encoding/json"
 	"time"
-	"github.com/dgrijalva/jwt-go"
 	"strconv"
 	"fmt"
 )
@@ -15,10 +14,6 @@ type FeatureRequestController struct {
 }
 
 func (fr *FeatureRequestController) Post() {
-	token,terr := ParseToken(fr.Ctx);
-	if terr != nil {
-		fr.RetError(terr)
-	}
 	inData := models.FeatureRequestCreate{}
 	err  := json.Unmarshal(fr.Ctx.Input.RequestBody, &inData)
 	if err != nil {
@@ -34,8 +29,37 @@ func (fr *FeatureRequestController) Post() {
 	}
 	beego.Debug("Parsed ClientCreateEdit:", &inData)
 	createdAt := time.Now().UTC()
-	featureRequest := models.NewFeatureRequest(&inData, createdAt,token.Claims.(jwt.MapClaims)["id"].(string))
+	featureRequest := models.NewFeatureRequest(&inData, createdAt,fr.User().ID)
 	result := featureRequest.Insert()
+	if result.Code != 0 {
+		if result.Code == models.ErrDatabase {
+			fr.RetError(errDatabase)
+			return
+		} else if result.Code == models.ErrSystem {
+			fr.RetError(errSystem)
+			return
+		}
+	}
+	fr.Data["json"] = featureRequest
+	fr.ServeJSON()
+}
+func (fr *FeatureRequestController) AddComment() {
+	inData := models.FeatureRequestAddComment{}
+	err  := json.Unmarshal(fr.Ctx.Input.RequestBody, &inData)
+	if err != nil {
+		beego.Debug("Error while parsing FeatureRequestAddComment:", err)
+		fr.RetError(errInputData)
+		return
+	}
+	isValid, conErr := fr.ValidateInput(inData)
+	if !isValid {
+		beego.Debug("FeatureRequestAddComment validation failed:", conErr)
+		fr.RetError(conErr)
+		return
+	}
+	beego.Debug("Parsed FeatureRequestAddComment:", &inData)
+	featureRequest := models.FeatureRequest{}
+	result := featureRequest.AddComment(fr.Ctx.Input.Param(":id"),&inData)
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			fr.RetError(errDatabase)
@@ -117,7 +141,7 @@ func (c *FeatureRequestController) UpdateTargetDate() {
 	}
 	beego.Debug("Parsed FeatureRequestEditTargetDate:", &inData)
 	client := models.FeatureRequest{}
-	result := client.UpdateTargetDate(c.Ctx.Input.Param(":id"), &inData, time.Now().UTC())
+	result := client.UpdateTargetDate(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -152,7 +176,7 @@ func (c *FeatureRequestController) AddRemoveClients() {
 	}
 	beego.Debug("Parsed FeatureRequestAddRemoveClients:", &inData)
 	client := models.FeatureRequest{}
-	result := client.AddRemoveClients(c.Ctx.Input.Param(":id"), &inData, time.Now().UTC())
+	result := client.AddRemoveClients(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -187,7 +211,7 @@ func (c *FeatureRequestController) UpdateDetails() {
 	}
 	beego.Debug("Parsed FeatureRequestEditTargetDate:", &inData)
 	client := models.FeatureRequest{}
-	result := client.UpdateDetails(c.Ctx.Input.Param(":id"), &inData, time.Now().UTC())
+	result := client.UpdateDetails(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -222,7 +246,7 @@ func (c *FeatureRequestController) UpdateState() {
 	if inData == 1 {
 		state = true
 	}
-	result := client.UpdateState(c.Ctx.Input.Param(":id"), state, time.Now().UTC())
+	result := client.UpdateState(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, state, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
