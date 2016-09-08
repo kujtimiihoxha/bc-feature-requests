@@ -477,6 +477,7 @@ func (c *FeatureRequest) setFromFeatureRequestEditTargetDate(data *FeatureReques
 // Set FeatureRequest data from FeatureRequestEditTargetDate model.
 func (c *FeatureRequest) setFromFeatureRequestEditDetails(data *FeatureRequestEditDetails) {
 	c.Title = data.Title
+	c.TitleNormalized = strings.ToLower(data.Title)
 	c.Description = data.Description
 	c.TicketUrl = data.TicketUrl
 	c.ProductAreaId = data.ProductAreaId
