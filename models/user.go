@@ -27,6 +27,7 @@ type User struct {
 	Username  string `gorethink:"username,omitempty" json:"username"`
 	Password  string `gorethink:"password,omitempty" json:"-"`
 	Role      int    `gorethink:"role,omitempty" json:"role"`
+	Verified      bool    `gorethink:"verified,omitempty" json:"-"`
 }
 
 const user_table = "users"
@@ -59,6 +60,7 @@ func NewUser(user *UserRegister, t time.Time) (*User, *CodeInfo) {
 		Email: strings.ToLower(user.Email),
 		Username: strings.ToLower(user.Username),
 		Role: EMPLOY,
+		Verified:false,
 		BaseModel: BaseModel{
 			CreatedAt: &t,
 		},
@@ -105,6 +107,19 @@ func (u *User) Insert() *CodeInfo {
 	id, result := u.insert(user_table, u)
 	u.ID = id
 	return result
+}
+func (u *User) Verify(id string, t time.Time) *CodeInfo {
+	result:=u.GetById(id)
+	if result.Code != 0 {
+		return result
+	}
+	if u.Verified {
+		return ErrorInfo(ErrUserAlreadyVerified,"User is already verified")
+	}
+	uv := User{}
+	uv.UpdatedAt = &t
+	uv.Verified = true
+	return u.update(user_table,id,uv)
 }
 
 // Update user by id.
@@ -159,6 +174,7 @@ func (u *User) generateUserPassword(user *UserRegister) *CodeInfo {
 	if err != nil {
 		return ErrorInfo(ErrSystem,err.Error())
 	}
+	user.Password =""
 	u.Password = string(d)
 	return OkInfo("")
 }
@@ -206,6 +222,9 @@ func (u *User) Login(userLogin UserLogin) (*TokenResponse, *CodeInfo) {
 		return nil, ErrorInfo(ErrNotFound, "User Not Found")
 	}
 	userResponse.One(&user)
+	if !user.Verified {
+		return nil, ErrorInfo(ErrUserNotVerified, "User is not verified")
+	}
 	err = bcrypt.CompareHashAndPassword(([]byte)(user.Password), ([]byte)(userLogin.Password))
 	if err != nil {
 		return nil, ErrorInfo(ErrUnAuthorized, "Password does not match")

@@ -5,8 +5,10 @@ import (
 	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	"encoding/json"
 	"github.com/astaxie/beego/context"
+	"github.com/kujtimiihoxha/bc-feature-requests/mail"
 	"github.com/dgrijalva/jwt-go"
 	"strings"
+	"time"
 )
 
 type AuthController struct {
@@ -40,6 +42,12 @@ func (a *AuthController) Login() {
 			a.RetError(errNotFound)
 			return
 		} else if result.Code == models.ErrUnAuthorized {
+			errPass := errPermission
+			errPass.Message = result.Info
+			errPass.MoreInfo = result.Info
+			a.RetError(errPass)
+			return
+		} else if result.Code == models.ErrUserNotVerified {
 			errPass := errPermission
 			errPass.Message = result.Info
 			errPass.MoreInfo = result.Info
@@ -132,4 +140,82 @@ func (base *BaseController) AdminAccessOnly() *ControllerError{
 		return e
 	}
 	return nil
+}
+
+func (c *AuthController) Verify() {
+	user := models.User{}
+	result := user.Verify(c.Ctx.Input.Param(":id"),time.Now().UTC())
+	if result.Code != 0 {
+		if result.Code == models.ErrSystem {
+			c.RetError(errSystem)
+			return
+		}
+		if result.Code == models.ErrNotFound {
+			c.RetError(err404)
+			return
+		}
+		if result.Code == models.ErrUserAlreadyVerified {
+			err := errInputData
+			err.Message = result.Info
+			c.RetError(err)
+			return
+		}
+	}
+	c.Data["json"] = user
+	c.ServeJSON()
+}
+
+func (c *AuthController) Post() {
+	inData := models.UserRegister{}
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, &inData)
+	if err != nil {
+		beego.Debug("Error while parsing UserCreateEdit:", err)
+		c.RetError(errInputData)
+		return
+	}
+	isValid, conErr := c.ValidateInput(inData)
+	if !isValid {
+		beego.Debug("UserRegister validation failed:", conErr)
+		c.RetError(conErr)
+		return
+	}
+	beego.Debug("Parsed UserRegister:", &inData)
+	createdAt := time.Now().UTC()
+	user, result := models.NewUser(&inData, createdAt)
+	if result.Code != 0 {
+		if result.Code == models.ErrPasswordMismatch || result.Code == models.ErrEmailExists || result.Code == models.ErrUsernameExists {
+			er := errInputData
+			er.Message = result.Info
+			beego.Debug("UserRegister create failed:", er)
+			c.RetError(er)
+			return
+		} else if result.Code == models.ErrSystem {
+			er := errSystem
+			er.Message = result.Info
+			beego.Debug("UserRegister create failed:", er)
+			c.RetError(er)
+			return
+		}
+	}
+	result = user.Insert()
+	if result.Code != 0 {
+		if result.Code == models.ErrDatabase {
+			c.RetError(errDatabase)
+			return
+		} else if result.Code == models.ErrSystem {
+			c.RetError(errSystem)
+			return
+		}
+	}
+	result = mail.Send(user.ID,user.Email)
+	if result.Code != 0 {
+		if result.Code == models.ErrEmailNotSent {
+			errToSend := errSystem
+			errToSend.Message = result.Info
+			c.RetError(errToSend)
+			return
+		}
+	}
+	c.Data["json"] = user
+	c.ServeJSON()
 }

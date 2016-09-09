@@ -9,6 +9,9 @@ const (
 	ErrPasswordMismatch = -5
 	ErrEmailExists   = -6
 	ErrUsernameExists   = -7
+	ErrEmailNotSent   = -8
+	ErrUserNotVerified   = -9
+	ErrUserAlreadyVerified   = -10
 )
 
 // CodeInfo.

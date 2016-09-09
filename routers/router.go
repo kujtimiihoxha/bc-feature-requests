@@ -62,8 +62,6 @@ func init() {
 		beego.NSNamespace("/users",
 			// Must be authenticated
 			beego.NSBefore(controllers.MustBeAuthenticated),
-			// Register user
-			beego.NSRouter("/register", &controllers.UserController{}, "post:Post"),
 			// Update user (only firstname and password)
 			beego.NSRouter("/:username", &controllers.UserController{}, "put:Update"),
 			// Get all client
@@ -76,6 +74,10 @@ func init() {
 		beego.NSNamespace("/auth",
 			// Log in
 			beego.NSRouter("/login", &controllers.AuthController{}, "post:Login"),
+			// Verify user
+			beego.NSRouter("/verify/:id", &controllers.AuthController{}, "put:Verify"),
+			// Register user
+			beego.NSRouter("/register", &controllers.AuthController{}, "post:Post"),
 		),
 
 	)
