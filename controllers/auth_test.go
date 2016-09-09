@@ -59,6 +59,7 @@ func TestUserLoginSuccessWithUsername(t *testing.T) {
 		Email:"employ@gmail.com",
 		Role:2,
 		FirstName:"Employ",
+		Verified:true,
 		LastName:"Name",
 		Password:"$2a$10$Rtt0sfArkW1gCLeiW5AUbu6VgRNtzzYRKPmD5xmK/JhAyw4VA8Ipq",
 	}
@@ -123,6 +124,7 @@ func TestUserLoginSuccessWithEmail(t *testing.T) {
 		Role:2,
 		FirstName:"Employ",
 		LastName:"Name",
+		Verified:true,
 		Password:"$2a$10$Rtt0sfArkW1gCLeiW5AUbu6VgRNtzzYRKPmD5xmK/JhAyw4VA8Ipq",
 	}
 	db.SetTestSession(mock)
@@ -263,6 +265,7 @@ func TestPasswordIncorrect(t *testing.T) {
 		Role:2,
 		FirstName:"Employ",
 		LastName:"Name",
+		Verified:true,
 		Password:"$2a$10$Rtt0sfArkW1gCLeiW5AUbu6VgRNtzzYRKPmD5xmK/JhAyw4VA8Ipq",
 	}
 	mock.On(r.Table(user_table).Filter(
