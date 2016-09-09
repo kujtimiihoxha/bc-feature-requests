@@ -1,0 +1,25 @@
+version: 1.0.0.{build}
+
+platform: x64
+
+os: Windows Server 2012 R2
+
+branches:
+  only:
+    - master
+
+clone_folder: c:\gopath\src\github.com\kujtimiihoxha\bc-feature-requests
+
+environment:
+  GOPATH: c:\gopath
+
+install:
+  - echo %PATH%
+  - echo %GOPATH%
+  - git submodule update --init --recursive
+  - go version
+  - go env
+  - go get -v -t ./...
+
+build_script:
+    - go test -v ./...
