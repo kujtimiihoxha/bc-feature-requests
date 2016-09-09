@@ -16,7 +16,6 @@ import (
 	"time"
 	"reflect"
 	"github.com/dgrijalva/jwt-go"
-	"golang.org/x/crypto/bcrypt"
 	"fmt"
 )
 
@@ -117,7 +116,7 @@ func TestInsertDatabaseError(t *testing.T) {
 	DataBaseError(w, t)
 }
 
-// Test the response when there is any database error.
+// Test the response when it is a success.
 // Should Return :
 // Status : 200
 // Client : With ID set
@@ -159,10 +158,10 @@ func TestInsertOnlyAdmin(t *testing.T) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(beego.AppConfig.String("jwt::key")))
-	rs.Header.Add("Authorization","Bearer "+ss)
+	rs.Header.Add("Authorization", "Bearer " + ss)
 	beego.BConfig.RunMode = "dev"
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
-	NotAuthorized(w,t)
+	NotAuthorized(w, t)
 }
 
 
@@ -251,7 +250,7 @@ func TestGetByIDNotFound(t *testing.T) {
 	mock.On(r.Table(clients_table).Get("585aca07-6d3c-43ba-97d4-8fb4cb27e024")).Once().Return(nil, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
-	NotFound(w, t)
+	NotFound(w, t,"Client with this ID could not be found")
 }
 
 
@@ -314,7 +313,7 @@ func TestDeleteNotFound(t *testing.T) {
 	mock.On(r.Table(clients_table).Get(id)).Once().Return(nil, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
-	NotFound(w, t)
+	NotFound(w, t,"Client with this ID could not be found")
 }
 
 
@@ -374,7 +373,7 @@ func TestDeleteSuccess(t *testing.T) {
 // Should Return :
 // Status : 400
 // Code : 10013
-func TestDeleteOnlyAdmin(t *testing.T) 	{
+func TestDeleteOnlyAdmin(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
 	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
 	w := httptest.NewRecorder()
@@ -388,20 +387,157 @@ func TestDeleteOnlyAdmin(t *testing.T) 	{
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(beego.AppConfig.String("jwt::key")))
-	rs.Header.Add("Authorization","Bearer "+ss)
+	rs.Header.Add("Authorization", "Bearer " + ss)
 	beego.BConfig.RunMode = "dev"
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
-	NotAuthorized(w,t)
+	NotAuthorized(w, t)
 }
 
-func TestTest(t *testing.T)  {
-	d,_ :=bcrypt.GenerateFromPassword([]byte("employ1@123"),bcrypt.DefaultCost)
-	fmt.Println(string(d))
-	d,_  =bcrypt.GenerateFromPassword([]byte("employ2@123"),bcrypt.DefaultCost)
-	fmt.Println(string(d))
-	d,_  =bcrypt.GenerateFromPassword([]byte("employ3@123"),bcrypt.DefaultCost)
-	fmt.Println(string(d))
-	//if err != nil {
-	//	return ErrorInfo(ErrSystem,err.Error())
-	//}
+
+/*-------------------------------
+	Test Update
+--------------------------------*/
+
+// Test the response when there is any system error.
+// Should Return :
+// Status : 500
+// Code : 10011
+func TestUpdateSystemError(t *testing.T) {
+	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
+	cl := models.ClientEdit{
+		Name:"Test",
+		Description:"Desc",
+
+	}
+	b, _ := json.Marshal(cl)
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/" + id, bytes.NewReader(b))
+	mock := r.NewMock()
+	db.SetTestSession(mock)
+	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(nil, errors.New("Test error"))
+	w := httptest.NewRecorder()
+	beego.BeeApp.Handlers.ServeHTTP(w, rs)
+	SystemError(w, t)
 }
+
+// Tests if the update method fails
+//  if no data is sent.
+// Should Return :
+// Status : 400
+// Code : 10001
+func TestUpdateFailWhenNoData(t *testing.T) {
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/585aca07-6d3c-43ba-97d4-8fb4cb27e024", nil)
+	w := httptest.NewRecorder()
+	beego.BeeApp.Handlers.ServeHTTP(w, rs)
+	FailNoData(w, t)
+}
+
+// Tests if the update method fails
+//  if the data send is not valid.
+// Should Return :
+// Status : 400
+// Code : 10014
+func TestUpdateFailValidation(t *testing.T) {
+	insertClientNoName := models.ClientEdit{
+		Description:"¡Test",//None ascii
+	}
+	b, _ := json.Marshal(insertClientNoName)
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/585aca07-6d3c-43ba-97d4-8fb4cb27e024", bytes.NewReader(b))
+	w := httptest.NewRecorder()
+	beego.BeeApp.Handlers.ServeHTTP(w, rs)
+	ValidationFail(w, t, "Description: ¡Test does not validate as ascii;")
+}
+
+
+// Test the response when there is any database error.
+// Should Return :
+// Status : 500
+// Code : 10002
+func TestUpdateDatabaseError(t *testing.T) {
+	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
+	insertClient := models.ClientEdit{
+		Description:"Test",
+		Name:"Test",
+	}
+	b, _ := json.Marshal(insertClient)
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/" + id, bytes.NewReader(b))
+	mock := r.NewMock()
+	db.SetTestSession(mock)
+	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Errors:1, FirstError:"Error from DB"}, nil)
+	w := httptest.NewRecorder()
+	fmt.Println(string(w.Body.Bytes()))
+	beego.BeeApp.Handlers.ServeHTTP(w, rs)
+	DataBaseError(w, t)
+}
+
+// Test the response when the record with the id could not be found.
+// Should Return :
+// Status : 404
+// Code : 404
+func TestUpdateNotFound(t *testing.T) {
+	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
+	insertClient := models.ClientEdit{
+		Description:"Test",
+		Name:"Test",
+	}
+	b, _ := json.Marshal(insertClient)
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/" + id, bytes.NewReader(b))
+	mock := r.NewMock()
+	db.SetTestSession(mock)
+	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Skipped:1}, nil)
+	w := httptest.NewRecorder()
+	beego.BeeApp.Handlers.ServeHTTP(w, rs)
+	NotFound(w, t,"Client with this ID could not be found")
+}
+
+// Test the response when it is a success.
+// Should Return :
+// Status : 200
+// Client : New client name, New client descripiton
+func TestUpdateSuccess(t *testing.T) {
+	insertClient := models.ClientEdit{
+		Description:"Test",
+		Name:"Test",
+	}
+	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
+	b, _ := json.Marshal(insertClient)
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/"+id, bytes.NewReader(b))
+	mock := r.NewMock()
+	db.SetTestSession(mock)
+	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Replaced:1}, nil)
+	mock.On(r.Table(clients_table).Get(id)).Once().Return(models.Client{
+		BaseModel:models.BaseModel{
+			ID:id,
+		},
+		Description: insertClient.Description,
+		Name: insertClient.Name,
+	}, nil)
+	w := httptest.NewRecorder()
+	beego.BeeApp.Handlers.ServeHTTP(w, rs)
+	Update(w, t, insertClient)
+}
+
+
+// Test the response when user has no privilege.
+// Should Return :
+// Status : 400
+// Code : 10013
+func TestUpdateOnlyAdmin(t *testing.T) {
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/585aca07-6d3c-43ba-97d4-8fb4cb27e024", nil)
+	w := httptest.NewRecorder()
+	claims := &models.Claims{
+		StandardClaims : jwt.StandardClaims{
+			ExpiresAt: time.Now().UTC().Add(time.Hour * 24).Unix(),
+			Issuer:    "bc",
+		},
+		Username: "username",
+		Role: 2,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	ss, _ := token.SignedString([]byte(beego.AppConfig.String("jwt::key")))
+	rs.Header.Add("Authorization", "Bearer " + ss)
+	beego.BConfig.RunMode = "dev"
+	beego.BeeApp.Handlers.ServeHTTP(w, rs)
+	NotAuthorized(w, t)
+}
+
+

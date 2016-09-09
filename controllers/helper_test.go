@@ -84,7 +84,22 @@ func Insert(w *httptest.ResponseRecorder, t *testing.T,id string) {
 		})
 	})
 }
-func NotFound(w *httptest.ResponseRecorder, t *testing.T)  {
+func Update(w *httptest.ResponseRecorder, t *testing.T,inData models.ClientEdit) {
+	Convey("Test if id is set after success update\n", t, func() {
+		response := models.Client{}
+		json.Unmarshal(w.Body.Bytes(),&response)
+		Convey("Status Code Should Be 200", func() {
+			So(w.Code, ShouldEqual, 200)
+		})
+		Convey("Response client should have the name of the edit data", func() {
+			So(response.Name, ShouldEqual,inData.Name)
+		})
+		Convey("Response client should have the description of the edit data", func() {
+			So(response.Description, ShouldEqual,inData.Description)
+		})
+	})
+}
+func NotFound(w *httptest.ResponseRecorder, t *testing.T, moreInfo string)  {
 	Convey("Test if not found is returned \n", t, func() {
 		response := ControllerError{}
 		json.Unmarshal(w.Body.Bytes(),&response)
@@ -94,8 +109,8 @@ func NotFound(w *httptest.ResponseRecorder, t *testing.T)  {
 		Convey("The Result Code should be 404", func() {
 			So(response.Code, ShouldEqual,404)
 		})
-		Convey("Message should specify the system erorr message", func() {
-			So(response.MoreInfo, ShouldEqual,"Client with this ID could not be found")
+		Convey("More info should specify the needed message", func() {
+			So(response.MoreInfo, ShouldEqual,moreInfo)
 		})
 	})
 }

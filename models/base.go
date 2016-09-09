@@ -80,11 +80,14 @@ func (b *BaseModel) insert(table string,model interface{}) (string,*CodeInfo) {
 //     - Returns CodeInfo with Code = 0 (No error)
 func (b *BaseModel) update(table string, id string, model interface{}) *CodeInfo {
 	wr, err := r.Table(table).Get(id).Update(model).RunWrite(b.Session())
-	if err != nil {
-		return ErrorInfo(ErrSystem, err.Error())
+	if wr.Skipped > 0 {
+		return  ErrorInfo(ErrNotFound, "Not Found")
 	}
 	if wr.Errors > 0 {
 		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	rs,err:= r.Table(table).Get(id).Run(b.Session());
 	if err != nil {

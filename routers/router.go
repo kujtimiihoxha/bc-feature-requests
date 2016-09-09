@@ -72,12 +72,12 @@ func init() {
 			beego.NSRouter("/:id", &controllers.UserController{}, "get:GetByID"),
 			// Delete client
 			beego.NSRouter("/:id", &controllers.UserController{}, "delete:Delete"),
-		),
-		// Authentication endpoint
+		),// Authentication endpoint
 		beego.NSNamespace("/auth",
 			// Log in
 			beego.NSRouter("/login", &controllers.AuthController{}, "post:Login"),
 		),
+
 	)
 	// Add Api v1 namespace to beego.
 	beego.AddNamespace(ns)
