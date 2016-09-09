@@ -1,5 +1,7 @@
 # BC-FEATURE-REQUESTS
-Feature requests app.
+This is the API for [bc-feature-requests-client](https://github.com/kujtimiihoxha/bc-feature-requests-client).
+It is a highly scalable restAPI server based on BeeGo for golang.
+BC-FEATURE-REQUEST is cross platform and it works on Linux, Windows, and Mac.  
 >Still in development.
 
 ### Run api server 
