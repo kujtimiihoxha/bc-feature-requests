@@ -52,6 +52,8 @@ Navigate to ```http://localhost:8080``` and you will get the coverage report in 
 - Highly scalable.
 - Easily configurable using one configuration file. 
 - Very easy deployment, only one executable contains the whole api.
+- Possibility to add cluster databases with RethinkDB
+- RethinkDB is also a very good choice for applications that have large data sets because it has a very powerful Sql language, it is a functional  language that allows the programmer to write very powerful and complex queries. 
 
 To deploy the app you need to build the app.
 ```
