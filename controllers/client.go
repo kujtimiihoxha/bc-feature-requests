@@ -96,6 +96,11 @@ func (c *ClientController) Delete() {
 		} else if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
 			return
+		}else if result.Code == models.ErrRecordHasConnections {
+			err:= errInputData
+			err.Message = result.Info
+			c.RetError(err)
+			return
 		}
 	}
 	c.Data["json"] = client

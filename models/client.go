@@ -1,6 +1,7 @@
 package models
 
 import (
+	r "github.com/dancannon/gorethink"
 	"time"
 )
 
@@ -91,6 +92,13 @@ func (c *Client) Update(id string, data *ClientEdit, t time.Time) *CodeInfo {
 //     - Fills the deleted data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
 func (c *Client) Delete(id string) *CodeInfo {
+	result,err:= r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id)).Run(c.Session())
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	if !result.IsNil() {
+		return ErrorInfo(ErrRecordHasConnections,"The client has feature requests and cannot be deleted")
+	}
 	return c.delete(client_table, id, c)
 }
 

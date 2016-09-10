@@ -209,6 +209,7 @@ func (c *AuthController) Post() {
 	}
 	result = mail.Send(user.ID,user.Email)
 	if result.Code != 0 {
+		user.Delete(user.ID);
 		if result.Code == models.ErrEmailNotSent {
 			errToSend := errSystem
 			errToSend.Message = result.Info

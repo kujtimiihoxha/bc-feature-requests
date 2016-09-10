@@ -12,6 +12,7 @@ const (
 	ErrEmailNotSent   = -8
 	ErrUserNotVerified   = -9
 	ErrUserAlreadyVerified   = -10
+	ErrRecordHasConnections  = -11
 )
 
 // CodeInfo.

@@ -2,6 +2,7 @@ package models
 
 
 import (
+	r "github.com/dancannon/gorethink"
 	"time"
 )
 
@@ -92,6 +93,13 @@ func (c *ProductArea) Update(id string, data * ProductAreaEdit, t time.Time) *Co
 //     - Fills the deleted data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
 func (c *ProductArea) Delete(id string) *CodeInfo {
+	result,err:= r.Table(feature_requests_table).Filter(r.Row.Field("product_area_id").Eq(id)).Run(c.Session())
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	if !result.IsNil() {
+		return ErrorInfo(ErrRecordHasConnections,"There are feature requests in this product area")
+	}
 	return c.delete(product_area_table,id,c)
 }
 
