@@ -16,7 +16,7 @@ var(
 )
 func Send(uuid string, email string) *models.CodeInfo {
 	fmt.Println(email_config)
-	link := "http://" + beego.AppConfig.String("server-url") + "/user/verify/" + uuid
+	link := "http://" + beego.AppConfig.String("server-url") + "/verify/" + uuid
 	//
 	mail := utils.NewEMail(email_config)
 	fmt.Println(mail)

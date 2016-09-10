@@ -7,6 +7,7 @@ import (
 	"time"
 	"github.com/astaxie/beego"
 	"strings"
+	"github.com/kujtimiihoxha/bc-feature-requests/db"
 )
 /*
  User model.
@@ -83,6 +84,22 @@ func GetAllUsers() ([]User, *CodeInfo) {
 	users := []User{}
 	result := getAll(user_table, &users)
 	return users, result
+}
+// Get all employs from the DB.
+// Returns:
+// 	- Array of users (or empty if there are no users in the DB).
+// 	- CodeInfo with the error information.
+func GetAllEmploys() ([]User, *CodeInfo) {
+	users := []User{}
+	res,err := r.Table(user_table).Filter(r.Row.Field("role").Ne(1)).Run(db.GetSession().(r.QueryExecutor))
+	if err != nil {
+		return users,  ErrorInfo(ErrSystem, err.Error())
+	}
+	err = res.All(&users)
+	if err != nil {
+		return users, ErrorInfo(ErrSystem, err.Error())
+	}
+	return users,  OkInfo("")
 }
 
 // Get user by id.

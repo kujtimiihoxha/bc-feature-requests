@@ -66,6 +66,8 @@ func init() {
 			beego.NSRouter("/:username", &controllers.UserController{}, "put:Update"),
 			// Get all client
 			beego.NSRouter("/", &controllers.UserController{}, "get:Get"),
+			// Get all employs
+			beego.NSRouter("/employs", &controllers.UserController{}, "get:GetEmploys"),
 			// Get client by ID
 			beego.NSRouter("/:id", &controllers.UserController{}, "get:GetByID"),
 			// Delete client

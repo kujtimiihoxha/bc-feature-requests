@@ -22,6 +22,23 @@ func (c *UserController) Get() {
 	c.Data["json"] = users
 	c.ServeJSON()
 }
+func (c *UserController) GetEmploys() {
+	res := c.AdminAccessOnly()
+	if res != nil {
+		beego.Debug("No Access", res)
+		c.RetError(res)
+		return
+	}
+	users, result := models.GetAllEmploys()
+	if result.Code != 0 {
+		if result.Code == models.ErrSystem {
+			c.RetError(errSystem)
+			return
+		}
+	}
+	c.Data["json"] = users
+	c.ServeJSON()
+}
 
 func (c *UserController) GetByID() {
 	res := c.AdminAccessOnly()
