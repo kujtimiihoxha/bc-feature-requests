@@ -20,6 +20,7 @@ import (
 )
 
 var clients_table = "clients"
+var client_feature_request_table = "client_feature_request"
 // Init client routes  for testing.
 func init() {
 	// Base route
@@ -295,6 +296,7 @@ func TestDeleteSystemError(t *testing.T) {
 	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
+	mock.On(r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id))).Once().Return(nil, nil)
 	mock.On(r.Table(clients_table).Get(id)).Once().Return(nil, errors.New("Test error"))
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
@@ -310,6 +312,7 @@ func TestDeleteNotFound(t *testing.T) {
 	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
+	mock.On(r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id))).Once().Return(nil, nil)
 	mock.On(r.Table(clients_table).Get(id)).Once().Return(nil, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
@@ -326,11 +329,13 @@ func TestDeleteDatabaseError(t *testing.T) {
 	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
+	mock.On(r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id))).Once().Return(nil, nil)
 	mock.On(r.Table(clients_table).Get(id)).Twice().Return(models.Client{
 		BaseModel: models.BaseModel{
 			ID:"585aca07-6d3c-43ba-97d4-8fb4cb27e024",
 		},
 	}, nil)
+
 	mock.On(r.Table(clients_table).Get(id).Delete()).Once().Return(r.WriteResponse{Errors:1, FirstError:"Error from DB"}, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
@@ -353,6 +358,7 @@ func TestDeleteSuccess(t *testing.T) {
 	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
+	mock.On(r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id))).Once().Return(nil, nil)
 	mock.On(r.Table(clients_table).Get(id)).Once().Return(dbClient, nil)
 	mock.On(r.Table(clients_table).Get(id).Delete()).Once().Return(r.WriteResponse{Deleted:1}, nil)
 	w := httptest.NewRecorder()
