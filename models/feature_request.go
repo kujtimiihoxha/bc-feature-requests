@@ -247,16 +247,33 @@ func (c *FeatureRequest) UpdateTargetDate(id string,userId string, username stri
 	if result.Code != 0 {
 		return result
 	}
-	wr, err := r.Table(feature_request_log_table).Insert(NewFeatureRequestLog(
+	log:=NewFeatureRequestLog(
 		userId,
 		id,
 		TARGET_DATE,
 		ICONS[TARGET_DATE],
 		fmt.Sprintf(LOG_MESSAGES[TARGET_DATE],
-		username))).RunWrite(c.Session())
+			username))
+	wr, err := r.Table(feature_request_log_table).Insert(log).RunWrite(c.Session())
 	if wr.Errors > 0 {
 		return  ErrorInfo(ErrDatabase, wr.FirstError)
 	}
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	users:= []User{}
+	userRes,err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3),r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	userRes.All(&users)
+	notifications := []*Notification{}
+	for _,v:= range users {
+
+		notifications = append(notifications,NewNotification(v.ID,"bc/details/"+id,log,time.Now().UTC()))
+	}
+	_,err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	broadcastWebSocket(newEvent(EVENT_MESSAGE,userId,NewNotification("","bc/details/"+id,log,time.Now().UTC())))
 	if err != nil {
 		return  ErrorInfo(ErrSystem, err.Error())
 	}
@@ -278,8 +295,20 @@ func (c *FeatureRequest) UpdateDetails(id string,userId string, username string,
 	}
 
 	updates := []*FeatureRequestLog{}
+	users:= []User{}
+	userRes,err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3),r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	userRes.All(&users)
+	notifications := []*Notification{}
 	for _,v := range data.Modifications {
+		log := NewFeatureRequestLog(userId,id,v,ICONS[v],fmt.Sprintf(LOG_MESSAGES[v],username))
 		updates = append(updates,NewFeatureRequestLog(userId,id,v,ICONS[v],fmt.Sprintf(LOG_MESSAGES[v],username)))
+		for _,v:= range users {
+			notifications = append(notifications,NewNotification(v.ID,"bc/details/"+id,log,time.Now().UTC()))
+		}
+		broadcastWebSocket(newEvent(EVENT_MESSAGE,userId,NewNotification("","bc/details/"+id,log,time.Now().UTC())))
 	}
 	wr, err := r.Table(feature_request_log_table).Insert(updates).RunWrite(c.Session())
 	if wr.Errors > 0 {
@@ -288,6 +317,7 @@ func (c *FeatureRequest) UpdateDetails(id string,userId string, username string,
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
+	_,err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
 	c.getLogs()
 	return OkInfo("Data updated succesfully")
 }
@@ -319,6 +349,13 @@ func (c *FeatureRequest) UpdateState(id string,userId string, username string, s
 	if state {
 		stateChange = STATE_CLOSE
 	}
+	log:= NewFeatureRequestLog(
+		userId,
+		id,
+		stateChange,
+		ICONS[stateChange],
+		fmt.Sprintf(LOG_MESSAGES[stateChange],
+			username))
 	wr, err := r.Table(feature_request_log_table).Insert(NewFeatureRequestLog(
 		userId,
 		id,
@@ -331,6 +368,21 @@ func (c *FeatureRequest) UpdateState(id string,userId string, username string, s
 	}
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
+	}
+	users:= []User{}
+	userRes,err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3),r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	userRes.All(&users)
+	notifications := []*Notification{}
+	for _,v:= range users {
+		notifications = append(notifications,NewNotification(v.ID,"bc/details/"+id,log,time.Now().UTC()))
+	}
+	_,err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	broadcastWebSocket(newEvent(EVENT_MESSAGE,userId,NewNotification("","bc/details/"+id,log,time.Now().UTC())))
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
 	}
 	c.getLogs()
 	return OkInfo("Data updated succesfully")
@@ -384,18 +436,34 @@ func (c *FeatureRequest) AddRemoveClients(id string,userId string, username stri
 	if !clientRewRes.IsNil() {
 		clientRewRes.All(&c.Clients)
 	}
-	wr, err = r.Table(feature_request_log_table).Insert(NewFeatureRequestLog(
+	log := NewFeatureRequestLog(
 		userId,
 		id,
 		CHANGED_CLIENTS,
 		ICONS[CHANGED_CLIENTS],
 		fmt.Sprintf(LOG_MESSAGES[CHANGED_CLIENTS],
-			username))).RunWrite(c.Session())
+			username))
+	wr, err = r.Table(feature_request_log_table).Insert(log).RunWrite(c.Session())
 	if wr.Errors > 0 {
 		return ErrorInfo(ErrDatabase, wr.FirstError)
 	}
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
+	}
+	users:= []User{}
+	userRes,err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3),r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
+	}
+	userRes.All(&users)
+	notifications := []*Notification{}
+	for _,v:= range users {
+		notifications = append(notifications,NewNotification(v.ID,"bc/details/"+id,log,time.Now().UTC()))
+	}
+	_,err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	broadcastWebSocket(newEvent(EVENT_MESSAGE,userId,NewNotification("","bc/details/"+id,log,time.Now().UTC())))
+	if err != nil {
+		return  ErrorInfo(ErrSystem, err.Error())
 	}
 	c.getLogs()
 	return OkInfo("")

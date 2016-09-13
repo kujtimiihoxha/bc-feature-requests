@@ -35,6 +35,7 @@ const(
 	TICKET_URL_UPDATE= "ticket_url_update"
 	TARGET_DATE= "target_date"
 	CHANGED_CLIENTS= "changed_clients"
+	CHANGED_PRIORITY= "changed_priority"
 	STATE_CLOSE= "closed"
 	STATE_OPEN= "reopen"
 )
@@ -47,6 +48,7 @@ var LOG_MESSAGES map[string]string= map[string]string{
 	CHANGED_CLIENTS : "<b><i>%s</i></b> updated the clients of the feature request",
 	STATE_CLOSE : "<b><i>%s</i></b> closed feature request",
 	STATE_OPEN : "<b><i>%s</i></b> reopened feature request",
+	CHANGED_PRIORITY : "<b><i>%s</i></b> changed the priority of a feature request",
 }
 var ICONS map[string]string= map[string]string{
 	TITLE_UPDATE : "title",
@@ -57,4 +59,5 @@ var ICONS map[string]string= map[string]string{
 	CHANGED_CLIENTS : "folder",
 	STATE_CLOSE : "highlight_off",
 	STATE_OPEN : "info_outline",
+	CHANGED_PRIORITY : "star_border",
 }

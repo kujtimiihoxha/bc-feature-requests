@@ -22,6 +22,18 @@ func (c *UserController) Get() {
 	c.Data["json"] = users
 	c.ServeJSON()
 }
+func (c *UserController) GetNotifications() {
+	user:= models.User{}
+	notifications, result :=user.GetNotifications(c.Ctx.Input.Param(":id"))
+	if result.Code != 0 {
+		if result.Code == models.ErrSystem {
+			c.RetError(errSystem)
+			return
+		}
+	}
+	c.Data["json"] = notifications
+	c.ServeJSON()
+}
 func (c *UserController) GetEmploys() {
 	res := c.AdminAccessOnly()
 	if res != nil {

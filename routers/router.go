@@ -15,6 +15,8 @@ import (
 func init() {
 	// Base route
 	beego.Router("/", &controllers.MainController{})
+	beego.Router("/ws/join", &controllers.WebSocketController{}, "get:Join")
+
 	// Api V1 routes
 	ns := beego.NewNamespace("/api/v1",
 		// Clients Api Endpoints
@@ -56,6 +58,7 @@ func init() {
 			beego.NSRouter("/:id/state/:state", &controllers.FeatureRequestController{}, "put:UpdateState"),
 			beego.NSRouter("/:id/clients", &controllers.FeatureRequestController{}, "post:AddRemoveClients"),
 			beego.NSRouter("/:id/comments", &controllers.FeatureRequestController{}, "post:AddComment"),
+			beego.NSRouter("/client/:id", &controllers.FeatureRequestController{}, "get:GetByClient"),
 
 		),
 		// Users endpoint
@@ -72,6 +75,7 @@ func init() {
 			beego.NSRouter("/:id", &controllers.UserController{}, "get:GetByID"),
 			// Delete client
 			beego.NSRouter("/:id", &controllers.UserController{}, "delete:Delete"),
+			beego.NSRouter("/:id/notifications", &controllers.UserController{}, "get:GetNotifications"),
 		),// Authentication endpoint
 		beego.NSNamespace("/auth",
 			// Log in
@@ -80,6 +84,8 @@ func init() {
 			beego.NSRouter("/verify/:id", &controllers.AuthController{}, "put:Verify"),
 			// Register user
 			beego.NSRouter("/register", &controllers.AuthController{}, "post:Post"),
+			// Register client user
+			beego.NSRouter("/register/client", &controllers.AuthController{}, "post:PostClient"),
 		),
 
 	)

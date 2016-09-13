@@ -141,6 +141,21 @@ func (base *BaseController) AdminAccessOnly() *ControllerError{
 	}
 	return nil
 }
+func (base *BaseController) NoClientAccessOnly() *ControllerError{
+	if (beego.BConfig.RunMode == "test"){
+		return nil
+	}
+	tk ,err := ParseToken(base.Ctx)
+	if err != nil {
+		return err
+	}
+	if tk.Claims.(jwt.MapClaims)["role"] == float64(models.CLIENT) {
+		e := errPermission
+		e.Message = "This api endpoint is only for admin users"
+		return e
+	}
+	return nil
+}
 
 func (c *AuthController) Verify() {
 	user := models.User{}
@@ -210,6 +225,64 @@ func (c *AuthController) Post() {
 	result = mail.Send(user.ID,user.Email)
 	if result.Code != 0 {
 		user.Delete(user.ID);
+		if result.Code == models.ErrEmailNotSent {
+			errToSend := errSystem
+			errToSend.Message = result.Info
+			c.RetError(errToSend)
+			return
+		}
+	}
+	c.Data["json"] = user
+	c.ServeJSON()
+}
+
+
+func (c *AuthController) PostClient() {
+	inData := models.ClientRegister{}
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, &inData)
+	if err != nil {
+		beego.Debug("Error while parsing UserCreateEdit:", err)
+		c.RetError(errInputData)
+		return
+	}
+	isValid, conErr := c.ValidateInput(inData)
+	if !isValid {
+		beego.Debug("UserRegister validation failed:", conErr)
+		c.RetError(conErr)
+		return
+	}
+	beego.Debug("Parsed UserRegister:", &inData)
+	createdAt := time.Now().UTC()
+	user, cl, result := models.NewClientUser(&inData, createdAt)
+	if result.Code != 0 {
+		if result.Code == models.ErrPasswordMismatch || result.Code == models.ErrEmailExists || result.Code == models.ErrUsernameExists {
+			er := errInputData
+			er.Message = result.Info
+			beego.Debug("UserRegister create failed:", er)
+			c.RetError(er)
+			return
+		} else if result.Code == models.ErrSystem {
+			er := errSystem
+			er.Message = result.Info
+			beego.Debug("UserRegister create failed:", er)
+			c.RetError(er)
+			return
+		}
+	}
+	result = user.InsertClient(cl)
+	if result.Code != 0 {
+		if result.Code == models.ErrDatabase {
+			c.RetError(errDatabase)
+			return
+		} else if result.Code == models.ErrSystem {
+			c.RetError(errSystem)
+			return
+		}
+	}
+	result = mail.Send(user.ID,user.Email)
+	if result.Code != 0 {
+		user.Delete(user.ID);
+		cl.Delete(user.ClientID)
 		if result.Code == models.ErrEmailNotSent {
 			errToSend := errSystem
 			errToSend.Message = result.Info

@@ -104,6 +104,23 @@ func (fr *FeatureRequestController) Get() {
 	fr.Data["json"] = feature_requests
 	fr.ServeJSON()
 }
+func (fr *FeatureRequestController) GetByClient() {
+	filter := fr.ParseFilter()
+	filter.Client = fr.Ctx.Input.Param(":id")
+	if filter.ClientPriorityDir == ""{
+		filter.ClientPriorityDir = "desc"
+	}
+	fmt.Println(filter.Client)
+	feature_requests,result := models.GetFeatureRequestByFilterSort(&filter)
+	if result.Code != 0 {
+		if result.Code == models.ErrSystem {
+			fr.RetError(errSystem)
+			return
+		}
+	}
+	fr.Data["json"] = feature_requests
+	fr.ServeJSON()
+}
 func (fr *FeatureRequestController) ParseFilter() models.FeatureRequestFilter {
 	cl,_ := fr.GetInt("closed");
 	skip,_ := fr.GetInt("skip");
