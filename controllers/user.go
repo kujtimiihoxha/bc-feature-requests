@@ -23,8 +23,8 @@ func (c *UserController) Get() {
 	c.ServeJSON()
 }
 func (c *UserController) GetNotifications() {
-	user:= models.User{}
-	notifications, result :=user.GetNotifications(c.Ctx.Input.Param(":id"))
+	user := models.User{}
+	notifications, result := user.GetNotifications(c.Ctx.Input.Param(":id"))
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
@@ -32,6 +32,23 @@ func (c *UserController) GetNotifications() {
 		}
 	}
 	c.Data["json"] = notifications
+	c.ServeJSON()
+}
+func (c *UserController) SetNotificationsViewed() {
+	user := models.User{}
+	result := user.SetNotificationsViewed(c.Ctx.Input.Param(":id"))
+	if result.Code != 0 {
+		if result.Code == models.ErrSystem {
+			c.RetError(errSystem)
+
+		}
+
+		if result.Code == models.ErrDatabase {
+			c.RetError(errDatabase)
+			return
+		}
+	}
+	c.Data["json"] = user
 	c.ServeJSON()
 }
 func (c *UserController) GetEmploys() {

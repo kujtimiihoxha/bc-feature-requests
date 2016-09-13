@@ -172,6 +172,20 @@ func (u *User) GetNotifications(id string) ([]Notification,*CodeInfo){
 	return notifications, OkInfo("")
 }
 
+
+func (u *User) SetNotificationsViewed(id string) *CodeInfo{
+	wr,err := r.Table(notifications_table).Filter(r.And(r.Row.Field("user_id").Eq(id),r.Row.Field("viewed").Eq(false))).Update(Notification{
+		Viewed:true,
+	}).RunWrite(u.Session())
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	if wr.Errors > 0 {
+		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	return OkInfo("")
+}
+
 // Insert new user.
 // User should have data before calling this method.
 // Error :

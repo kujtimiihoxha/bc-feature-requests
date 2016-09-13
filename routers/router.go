@@ -76,6 +76,7 @@ func init() {
 			// Delete client
 			beego.NSRouter("/:id", &controllers.UserController{}, "delete:Delete"),
 			beego.NSRouter("/:id/notifications", &controllers.UserController{}, "get:GetNotifications"),
+			beego.NSRouter("/:id/notifications/viewed", &controllers.UserController{}, "put:SetNotificationsViewed"),
 		),// Authentication endpoint
 		beego.NSNamespace("/auth",
 			// Log in

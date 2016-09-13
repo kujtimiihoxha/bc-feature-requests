@@ -17,6 +17,8 @@ import (
 	"errors"
 	"github.com/astaxie/beego/context"
 	"time"
+	"golang.org/x/crypto/bcrypt"
+	"fmt"
 )
 var user_table = "users"
 // Init client routes  for testing.
@@ -461,4 +463,9 @@ func TestMostBeAuthorizedTokenOK(t *testing.T) {
 		})
 	})
 	beego.BConfig.RunMode = "test"
+}
+
+func TestPSS(t *testing.T){
+	d,_ :=bcrypt.GenerateFromPassword([]byte("artpfmic@123"),bcrypt.DefaultCost)
+	fmt.Println(string(d))
 }

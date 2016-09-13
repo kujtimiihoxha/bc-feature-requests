@@ -9,10 +9,10 @@ const (
 )
 
 type Event struct {
-	Type      EventType // JOIN, LEAVE, MESSAGE
-	User      string
-	Timestamp int // Unix timestamp (secs)
-	Content   interface{}
+	Type      EventType `json:"type"`// JOIN, LEAVE, MESSAGE
+	User      string `json:"user"`
+	Timestamp int  `json:"timestamp"`// Unix timestamp (secs)
+	Content   interface{} `json:"content"`
 }
 
 
