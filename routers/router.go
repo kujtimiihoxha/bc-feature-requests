@@ -56,6 +56,7 @@ func init() {
 			beego.NSRouter("/:id/date", &controllers.FeatureRequestController{}, "put:UpdateTargetDate"),
 			beego.NSRouter("/:id", &controllers.FeatureRequestController{}, "put:UpdateDetails"),
 			beego.NSRouter("/:id/state/:state", &controllers.FeatureRequestController{}, "put:UpdateState"),
+			beego.NSRouter("/:id/priority/:priority", &controllers.FeatureRequestController{}, "put:UpdatePriority"),
 			beego.NSRouter("/:id/clients", &controllers.FeatureRequestController{}, "post:AddRemoveClients"),
 			beego.NSRouter("/:id/comments", &controllers.FeatureRequestController{}, "post:AddComment"),
 			beego.NSRouter("/client/:id", &controllers.FeatureRequestController{}, "get:GetByClient"),

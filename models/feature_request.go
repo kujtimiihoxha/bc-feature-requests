@@ -26,17 +26,18 @@ import (
 // UpdatedAt: The date of the last update
 type FeatureRequest struct {
 	BaseModel
-	Title         string    `gorethink:"title,omitempty" json:"title"`
-	TitleNormalized         string    `gorethink:"title_normalized,omitempty" json:"-"`
-	Description   string    `gorethink:"description,omitempty" json:"description"`
-	TargetDate    *time.Time   `gorethink:"target_date,omitempty" json:"target_date"`
-	TicketUrl     string    `gorethink:"ticket_url,omitempty" json:"ticket_url"`
-	ProductAreaId string    `gorethink:"product_area_id,omitempty" json:"product_area_id"`
-	EmployID      string    `gorethink:"employ_id,omitempty" json:"employ_id"`
-	Closed        bool    `gorethink:"closed" json:"closed"`
-	Clients       []ClientFeatureRequest  `gorethink:"-" json:"clients"`
-	Modifications       []FeatureRequestLog  `gorethink:"-" json:"modifications"`
-	Comments       []UserComment  `gorethink:"-" json:"comments"`
+	Title           string    `gorethink:"title,omitempty" json:"title"`
+	TitleNormalized string    `gorethink:"title_normalized,omitempty" json:"-"`
+	Description     string    `gorethink:"description,omitempty" json:"description"`
+	TargetDate      *time.Time   `gorethink:"target_date,omitempty" json:"target_date"`
+	TicketUrl       string    `gorethink:"ticket_url,omitempty" json:"ticket_url"`
+	ProductAreaId   string    `gorethink:"product_area_id,omitempty" json:"product_area_id"`
+	EmployID        string    `gorethink:"employ_id,omitempty" json:"employ_id"`
+	Closed          bool    `gorethink:"closed" json:"closed"`
+	GlobalPriority  int    `gorethink:"global_priority,omitempty" json:"global_priority"`
+	Clients         []ClientFeatureRequest  `gorethink:"-" json:"clients"`
+	Modifications   []FeatureRequestLog  `gorethink:"-" json:"modifications"`
+	Comments        []UserComment  `gorethink:"-" json:"comments"`
 }
 // The feature requests table name.
 const feature_requests_table = "feature_requests"
@@ -58,6 +59,7 @@ func NewFeatureRequest(fr *FeatureRequestCreate, t time.Time, employID string) *
 		Clients:[]ClientFeatureRequest{},
 		TargetDate: fr.TargetDate,
 		Closed: false,
+		GlobalPriority: fr.GlobalPriority,
 		BaseModel: BaseModel{
 			CreatedAt: &t,
 			UpdatedAt: &t,
@@ -86,6 +88,7 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 	cntRm.One(&total)
 	var result *r.Cursor;
 	term := r.Table(feature_requests_table).Filter(statements)
+	fmt.Println(filter.Field,filter.Dir)
 	if filter.Field != "" {
 		if filter.Dir != "" {
 			if filter.Dir == "asc" {
@@ -97,11 +100,13 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 			term = term.OrderBy(filter.Field)
 		}
 	}
-	if filter.Skip != 0 {
-		term = term.Skip(filter.Skip)
-	}
-	if filter.Get != 0 {
-		term = term.Limit(filter.Get)
+	if !( filter.ClientPriorityDir != "" && filter.Client != "") {
+		if filter.Skip != 0 {
+			term = term.Skip(filter.Skip)
+		}
+		if filter.Get != 0 {
+			term = term.Limit(filter.Get)
+		}
 	}
 
 	result, err = term.Run(db.GetSession().(r.QueryExecutor))
@@ -112,7 +117,7 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 	if err != nil {
 		return FeatureRequestFilterResponse{}, ErrorInfo(ErrSystem, err.Error())
 	}
-	for i,v := range feature_requests {
+	for i, v := range feature_requests {
 		feature_requests[i].Clients = []ClientFeatureRequest{}
 		clientRewRes, err := r.Table(client_feature_request_table).Filter(
 			r.Row.Field("feature_request_id").Eq(v.ID)).Run(db.GetSession().(r.QueryExecutor))
@@ -123,17 +128,17 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 			clientRewRes.All(&feature_requests[i].Clients)
 		}
 	}
-	if filter.ClientPriorityDir != "" && filter.Client != ""{
+	if filter.ClientPriorityDir != "" && filter.Client != "" {
 		if filter.ClientPriorityDir == "asc" {
 			slice.Sort(feature_requests[:], func(i, j int) bool {
 				var iClient ClientFeatureRequest;
 				var jClient ClientFeatureRequest;
-				for _,v :=  range feature_requests[i].Clients {
+				for _, v := range feature_requests[i].Clients {
 					if v.ClientId == filter.Client {
 						iClient = v
 					}
 				}
-				for _,v :=  range feature_requests[j].Clients {
+				for _, v := range feature_requests[j].Clients {
 					if v.ClientId == filter.Client {
 						jClient = v
 					}
@@ -145,12 +150,12 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 			slice.Sort(feature_requests[:], func(i, j int) bool {
 				var iClient ClientFeatureRequest;
 				var jClient ClientFeatureRequest;
-				for _,v :=  range feature_requests[i].Clients {
+				for _, v := range feature_requests[i].Clients {
 					if v.ClientId == filter.Client {
 						iClient = v
 					}
 				}
-				for _,v :=  range feature_requests[j].Clients {
+				for _, v := range feature_requests[j].Clients {
 					if v.ClientId == filter.Client {
 						jClient = v
 					}
@@ -158,7 +163,29 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 				return iClient.Priority < jClient.Priority
 			})
 		}
+		fmt.Println(filter.Skip,filter.Get)
+		if filter.Skip != 0 && filter.Get != 0 {
+			if  filter.Skip+filter.Get < len(feature_requests){
+				feature_requests = feature_requests[filter.Skip: filter.Skip+filter.Get]
+			} else {
+				if  filter.Skip <  len(feature_requests){
+					feature_requests = feature_requests[filter.Skip:]
+				}
+			}
+		} else {
+			if filter.Get != 0 {
+				if  filter.Get <  len(feature_requests){
+					feature_requests = feature_requests[0:filter.Get]
+				}
+			} else if   filter.Skip != 0 {
+				if  filter.Skip <  len(feature_requests){
+					feature_requests = feature_requests[filter.Skip:]
+				}
+			}
+		}
+
 	}
+
 	return FeatureRequestFilterResponse{
 		feature_requests,
 		total,
@@ -182,11 +209,11 @@ func generateFeatureRequestQuery(filter *FeatureRequestFilter) (interface{}, *Co
 		statements := []interface{}{}
 		ids := []interface{}{}
 		for _, v := range fr_match {
-			ids = append(ids,v.FeatureRequestId)
+			ids = append(ids, v.FeatureRequestId)
 		}
 		fmt.Println(fr_match)
 		helpers.RemoveDuplicates(&ids)
-		for _,v := range ids {
+		for _, v := range ids {
 			statements = append(statements, r.Row.Field("id").Eq(v))
 		}
 		filterStatements = append(filterStatements, r.Or(statements...))
@@ -214,9 +241,9 @@ func generateFeatureRequestQuery(filter *FeatureRequestFilter) (interface{}, *Co
 //     - Fills the data of the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
 func (c *FeatureRequest) GetById(id string) *CodeInfo {
-	ci:=c.getById(feature_requests_table, id, c)
+	ci := c.getById(feature_requests_table, id, c)
 	if ci.Code != 0 {
-		return  ci
+		return ci
 	}
 	c.Clients = []ClientFeatureRequest{}
 	clientRewRes, err := r.Table(client_feature_request_table).Filter(
@@ -231,7 +258,15 @@ func (c *FeatureRequest) GetById(id string) *CodeInfo {
 	c.getComments()
 	return ci
 }
-
+func GetMinGlobalPriority() ( int,*CodeInfo ){
+	fr := FeatureRequest{}
+	minRes,err := r.Table(feature_requests_table).Max("global_priority").Pluck("global_priority").Run(db.GetSession().(r.QueryExecutor))
+	if err != nil {
+		return 0, ErrorInfo(ErrSystem, err.Error())
+	}
+	minRes.One(&fr)
+	return fr.GlobalPriority, OkInfo("");
+}
 
 // Update feature request target date.
 // Error :
@@ -239,7 +274,7 @@ func (c *FeatureRequest) GetById(id string) *CodeInfo {
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) UpdateTargetDate(id string,userId string, username string, data *FeatureRequestEditTargetDate, t time.Time) *CodeInfo {
+func (c *FeatureRequest) UpdateTargetDate(id string, userId string, username string, data *FeatureRequestEditTargetDate, t time.Time) *CodeInfo {
 	c.setFromFeatureRequestEditTargetDate(data)
 	fmt.Println(c)
 	c.UpdatedAt = &t
@@ -247,7 +282,7 @@ func (c *FeatureRequest) UpdateTargetDate(id string,userId string, username stri
 	if result.Code != 0 {
 		return result
 	}
-	log:=NewFeatureRequestLog(
+	log := NewFeatureRequestLog(
 		userId,
 		id,
 		TARGET_DATE,
@@ -256,26 +291,26 @@ func (c *FeatureRequest) UpdateTargetDate(id string,userId string, username stri
 			username))
 	wr, err := r.Table(feature_request_log_table).Insert(log).RunWrite(c.Session())
 	if wr.Errors > 0 {
-		return  ErrorInfo(ErrDatabase, wr.FirstError)
+		return ErrorInfo(ErrDatabase, wr.FirstError)
 	}
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
-	users:= []User{}
-	userRes,err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3),r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	users := []User{}
+	userRes, err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3), r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	userRes.All(&users)
 	notifications := []*Notification{}
-	for _,v:= range users {
+	for _, v := range users {
 
-		notifications = append(notifications,NewNotification(v.ID,"bc/details/"+id,log,time.Now().UTC()))
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
 	}
-	_,err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
-	broadcastWebSocket(newEvent(EVENT_MESSAGE,userId,NewNotification("","bc/details/"+id,log,time.Now().UTC())))
+	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	c.getLogs()
 	return OkInfo("Data updated succesfully")
@@ -286,29 +321,29 @@ func (c *FeatureRequest) UpdateTargetDate(id string,userId string, username stri
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) UpdateDetails(id string,userId string, username string,data *FeatureRequestEditDetails,t time.Time) *CodeInfo {
+func (c *FeatureRequest) UpdateDetails(id string, userId string, username string, data *FeatureRequestEditDetails, t time.Time) *CodeInfo {
 	c.setFromFeatureRequestEditDetails(data)
 	c.UpdatedAt = &t
 	result := c.update(feature_requests_table, id, c)
 	if result.Code != 0 {
-		return  result
+		return result
 	}
 
 	updates := []*FeatureRequestLog{}
-	users:= []User{}
-	userRes,err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3),r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	users := []User{}
+	userRes, err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3), r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	userRes.All(&users)
 	notifications := []*Notification{}
-	for _,v := range data.Modifications {
-		log := NewFeatureRequestLog(userId,id,v,ICONS[v],fmt.Sprintf(LOG_MESSAGES[v],username))
-		updates = append(updates,NewFeatureRequestLog(userId,id,v,ICONS[v],fmt.Sprintf(LOG_MESSAGES[v],username)))
-		for _,v:= range users {
-			notifications = append(notifications,NewNotification(v.ID,"bc/details/"+id,log,time.Now().UTC()))
+	for _, v := range data.Modifications {
+		log := NewFeatureRequestLog(userId, id, v, ICONS[v], fmt.Sprintf(LOG_MESSAGES[v], username))
+		updates = append(updates, NewFeatureRequestLog(userId, id, v, ICONS[v], fmt.Sprintf(LOG_MESSAGES[v], username)))
+		for _, v := range users {
+			notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
 		}
-		broadcastWebSocket(newEvent(EVENT_MESSAGE,userId,NewNotification("","bc/details/"+id,log,time.Now().UTC())))
+		broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
 	}
 	wr, err := r.Table(feature_request_log_table).Insert(updates).RunWrite(c.Session())
 	if wr.Errors > 0 {
@@ -317,18 +352,18 @@ func (c *FeatureRequest) UpdateDetails(id string,userId string, username string,
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
-	_,err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
 	c.getLogs()
 	return OkInfo("Data updated succesfully")
 }
 func (c *FeatureRequest) getLogs() *CodeInfo {
-	res,err := r.Table(feature_request_log_table).Filter(r.Row.Field("feature_request_id").Eq(c.ID)).OrderBy(r.Desc("created_at")).Run(db.GetSession().(r.QueryExecutor))
+	res, err := r.Table(feature_request_log_table).Filter(r.Row.Field("feature_request_id").Eq(c.ID)).OrderBy(r.Desc("created_at")).Run(db.GetSession().(r.QueryExecutor))
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	err = res.All(&c.Modifications)
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	return OkInfo("")
 }
@@ -338,7 +373,7 @@ func (c *FeatureRequest) getLogs() *CodeInfo {
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) UpdateState(id string,userId string, username string, state bool, t time.Time) *CodeInfo {
+func (c *FeatureRequest) UpdateState(id string, userId string, username string, state bool, t time.Time) *CodeInfo {
 	c.Closed = state
 	c.UpdatedAt = &t
 	result := c.update(feature_requests_table, id, c)
@@ -349,43 +384,83 @@ func (c *FeatureRequest) UpdateState(id string,userId string, username string, s
 	if state {
 		stateChange = STATE_CLOSE
 	}
-	log:= NewFeatureRequestLog(
+	log := NewFeatureRequestLog(
 		userId,
 		id,
 		stateChange,
 		ICONS[stateChange],
 		fmt.Sprintf(LOG_MESSAGES[stateChange],
 			username))
-	wr, err := r.Table(feature_request_log_table).Insert(NewFeatureRequestLog(
-		userId,
-		id,
-		stateChange,
-		ICONS[stateChange],
-		fmt.Sprintf(LOG_MESSAGES[stateChange],
-			username))).RunWrite(c.Session())
+	wr, err := r.Table(feature_request_log_table).Insert(log).RunWrite(c.Session())
 	if wr.Errors > 0 {
 		return ErrorInfo(ErrDatabase, wr.FirstError)
 	}
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
-	users:= []User{}
-	userRes,err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3),r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	users := []User{}
+	userRes, err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3), r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	userRes.All(&users)
 	notifications := []*Notification{}
-	for _,v:= range users {
-		notifications = append(notifications,NewNotification(v.ID,"bc/details/"+id,log,time.Now().UTC()))
+	for _, v := range users {
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
 	}
-	_,err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
-	broadcastWebSocket(newEvent(EVENT_MESSAGE,userId,NewNotification("","bc/details/"+id,log,time.Now().UTC())))
+	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	c.getLogs()
 	return OkInfo("Data updated succesfully")
+}
+// Update feature request priority.
+// Error :
+// 	- Returns CodeInfo with the error information.
+// Success :
+//     - Fills the updated data to the model calling the method.
+//     - Returns CodeInfo with Code = 0 (No error)
+func (c *FeatureRequest) UpdatePriority(id string, userId string, username string, priority int, t time.Time) *CodeInfo {
+	c.GlobalPriority = priority
+	if v:=CheckGlobalPriority(*c,nil); v.Code != 0 {
+		return  v;
+	}
+	if v:=c.update(feature_requests_table,id,c); v.Code != 0 {
+		return  v;
+	}
+	c.UpdatedAt= &t
+	log := NewFeatureRequestLog(
+		userId,
+		id,
+		CHANGED_PRIORITY,
+		ICONS[CHANGED_PRIORITY],
+		fmt.Sprintf(LOG_MESSAGES[CHANGED_PRIORITY],
+			username))
+	wr, err := r.Table(feature_request_log_table).Insert(log).RunWrite(c.Session())
+	if wr.Errors > 0 {
+		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	users := []User{}
+	userRes, err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3), r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	userRes.All(&users)
+	notifications := []*Notification{}
+	for _, v := range users {
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
+	}
+	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	return OkInfo("")
 }
 
 // Add Remove Clients
@@ -394,39 +469,39 @@ func (c *FeatureRequest) UpdateState(id string,userId string, username string, s
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) AddRemoveClients(id string,userId string, username string, addRemove *FeatureRequestAddRemoveClients, t time.Time) *CodeInfo {
+func (c *FeatureRequest) AddRemoveClients(id string, userId string, username string,role int, addRemove *FeatureRequestAddRemoveClients, t time.Time) *CodeInfo {
 	if len(addRemove.ClientsToRemove) > 0 {
 		statements := []interface{}{}
-		for _,v := range addRemove.ClientsToRemove {
-			statements = append(statements,r.Row.Field("client_id").Eq(v))
+		for _, v := range addRemove.ClientsToRemove {
+			statements = append(statements, r.Row.Field("client_id").Eq(v))
 		}
-		wr,err := r.Table(client_feature_request_table).Filter(r.And(r.Or(statements...),r.Row.Field("feature_request_id").Eq(id))).Delete().RunWrite(c.Session())
+		wr, err := r.Table(client_feature_request_table).Filter(r.And(r.Or(statements...), r.Row.Field("feature_request_id").Eq(id))).Delete().RunWrite(c.Session())
 
 		if wr.Errors > 0 {
 			return ErrorInfo(ErrDatabase, wr.FirstError)
 		}
 		if err != nil {
-			return  ErrorInfo(ErrSystem, err.Error())
+			return ErrorInfo(ErrSystem, err.Error())
 		}
 	}
-	clientsToAdd:=[]*ClientFeatureRequest{}
-	for _,v:= range addRemove.ClientsToAdd {
-		clientFR := NewClientFeatureRequest(id,v.Client_id,v.Priority,time.Now().UTC());
+	clientsToAdd := []*ClientFeatureRequest{}
+	for _, v := range addRemove.ClientsToAdd {
+		clientFR := NewClientFeatureRequest(id, v.Client_id, v.Priority, time.Now().UTC());
 		CheckPriority(*clientFR)
-		clientsToAdd = append(clientsToAdd,clientFR)
+		clientsToAdd = append(clientsToAdd, clientFR)
 	}
-	wr,err := r.Table(client_feature_request_table).Insert(clientsToAdd).RunWrite(c.Session())
+	wr, err := r.Table(client_feature_request_table).Insert(clientsToAdd).RunWrite(c.Session())
 
 	if wr.Errors > 0 {
 		return ErrorInfo(ErrDatabase, wr.FirstError)
 	}
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	c.UpdatedAt = &t
 	result := c.update(feature_requests_table, id, c)
 	if result.Code != 0 {
-		return  result
+		return result
 	}
 	clientRewRes, err := r.Table(client_feature_request_table).Filter(
 		r.Row.Field("feature_request_id").Eq(c.ID)).Run(c.Session())
@@ -436,12 +511,16 @@ func (c *FeatureRequest) AddRemoveClients(id string,userId string, username stri
 	if !clientRewRes.IsNil() {
 		clientRewRes.All(&c.Clients)
 	}
+	change := CHANGED_CLIENTS;
+	if role == 3 {
+		change = CHANGED_PRIORITY
+	}
 	log := NewFeatureRequestLog(
 		userId,
 		id,
-		CHANGED_CLIENTS,
-		ICONS[CHANGED_CLIENTS],
-		fmt.Sprintf(LOG_MESSAGES[CHANGED_CLIENTS],
+		change,
+		ICONS[change],
+		fmt.Sprintf(LOG_MESSAGES[change],
 			username))
 	wr, err = r.Table(feature_request_log_table).Insert(log).RunWrite(c.Session())
 	if wr.Errors > 0 {
@@ -450,20 +529,20 @@ func (c *FeatureRequest) AddRemoveClients(id string,userId string, username stri
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
-	users:= []User{}
-	userRes,err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3),r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	users := []User{}
+	userRes, err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3), r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	userRes.All(&users)
 	notifications := []*Notification{}
-	for _,v:= range users {
-		notifications = append(notifications,NewNotification(v.ID,"bc/details/"+id,log,time.Now().UTC()))
+	for _, v := range users {
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
 	}
-	_,err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
-	broadcastWebSocket(newEvent(EVENT_MESSAGE,userId,NewNotification("","bc/details/"+id,log,time.Now().UTC())))
+	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	c.getLogs()
 	return OkInfo("")
@@ -477,7 +556,8 @@ func (c *FeatureRequest) AddRemoveClients(id string,userId string, username stri
 //     - Sets the ID of the model calling the method on Success
 //     - Returns CodeInfo with Code = 0 (No error)
 
-func (c *FeatureRequest) Insert() *CodeInfo {
+func (c *FeatureRequest) Insert(userId string, username string) *CodeInfo {
+	CheckGlobalPriority(*c,nil)
 	for _, v := range c.Clients {
 		CheckPriority(v)
 	}
@@ -486,15 +566,37 @@ func (c *FeatureRequest) Insert() *CodeInfo {
 		return result
 	}
 	c.ID = id
-	cfrs:=[]*ClientFeatureRequest{}
-	for _,v:= range c.Clients{
-		cfrs = append(cfrs,NewClientFeatureRequest(c.ID,v.ClientId, v.Priority,time.Now().UTC()))
+	cfrs := []*ClientFeatureRequest{}
+	for _, v := range c.Clients {
+		cfrs = append(cfrs, NewClientFeatureRequest(c.ID, v.ClientId, v.Priority, time.Now().UTC()))
 	}
 	_, result = c.insert(client_feature_request_table, cfrs)
+	users := []User{}
+	userRes, err := r.Table(user_table).Filter(r.And(r.Row.Field("role").Ne(3), r.Row.Field("id").Ne(userId))).Pluck("id").Run(c.Session())
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	log := NewFeatureRequestLog(
+		userId,
+		id,
+		NEW_FEATRE_REQUEST,
+		ICONS[NEW_FEATRE_REQUEST],
+		fmt.Sprintf(LOG_MESSAGES[NEW_FEATRE_REQUEST],
+			username))
+	userRes.All(&users)
+	notifications := []*Notification{}
+	for _, v := range users {
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
+	}
+	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
 	return result
 }
-func (c *FeatureRequest) AddComment(id string,data *FeatureRequestAddComment) *CodeInfo {
-	comment := NewComment(data,id,time.Now().UTC())
+func (c *FeatureRequest) AddComment(id string, data *FeatureRequestAddComment) *CodeInfo {
+	comment := NewComment(data, id, time.Now().UTC())
 	_, result := c.insert(user_comment_table, comment)
 	fmt.Println(result)
 	if result.Code != 0 {
@@ -504,14 +606,14 @@ func (c *FeatureRequest) AddComment(id string,data *FeatureRequestAddComment) *C
 	c.getComments()
 	return result
 }
-func (c *FeatureRequest) getComments()  *CodeInfo{
-	res,err := r.Table(user_comment_table).Filter(r.Row.Field("feature_request_id").Eq(c.ID)).OrderBy(r.Asc("created_at")).Run(db.GetSession().(r.QueryExecutor))
+func (c *FeatureRequest) getComments() *CodeInfo {
+	res, err := r.Table(user_comment_table).Filter(r.Row.Field("feature_request_id").Eq(c.ID)).OrderBy(r.Asc("created_at")).Run(db.GetSession().(r.QueryExecutor))
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	err = res.All(&c.Comments)
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	return OkInfo("")
 }
@@ -537,7 +639,40 @@ func CheckPriority(cp  ClientFeatureRequest) *CodeInfo {
 	}
 	return CheckPriority(c_fr)
 }
-
+func CheckGlobalPriority(cp  FeatureRequest,t *time.Time) *CodeInfo {
+	fr := FeatureRequest{}
+	if t == nil {
+		frRes, err := r.Table(feature_requests_table).Filter(r.Row.Field("global_priority").Eq(cp.GlobalPriority)).Run(db.GetSession().(r.QueryExecutor))
+		if err != nil {
+			return ErrorInfo(ErrSystem, err.Error())
+		}
+		if frRes.IsNil() {
+			return OkInfo("")
+		}
+		frRes.One(&fr)
+	} else {
+		frRes, err := r.Table(feature_requests_table).Filter(r.And(r.Row.Field("global_priority").Eq(cp.GlobalPriority),r.Row.Field("updated_at").Ne(t))).Run(db.GetSession().(r.QueryExecutor))
+		if err != nil {
+			return ErrorInfo(ErrSystem, err.Error())
+		}
+		if frRes.IsNil() {
+			return OkInfo("")
+		}
+		frRes.One(&fr)
+	}
+	fr.GlobalPriority++
+	lt:= time.Now()
+	fr.UpdatedAt = &lt;
+	wr, err := r.Table(feature_requests_table).Get(fr.ID).Update(fr).RunWrite(
+		db.GetSession().(r.QueryExecutor))
+	if err != nil {
+		return ErrorInfo(ErrSystem, err.Error())
+	}
+	if wr.Errors > 0 {
+		return ErrorInfo(ErrDatabase, wr.FirstError)
+	}
+	return CheckGlobalPriority(fr,&lt)
+}
 // Set FeatureRequest data from FeatureRequestEditTargetDate model.
 func (c *FeatureRequest) setFromFeatureRequestEditTargetDate(data *FeatureRequestEditTargetDate) {
 	c.TargetDate = data.TargetDate

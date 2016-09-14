@@ -30,7 +30,17 @@ func (fr *FeatureRequestController) Post() {
 	beego.Debug("Parsed ClientCreateEdit:", &inData)
 	createdAt := time.Now().UTC()
 	featureRequest := models.NewFeatureRequest(&inData, createdAt,fr.User().ID)
-	result := featureRequest.Insert()
+	if fr.User().Role == 3 {
+		minRes,err:= models.GetMinGlobalPriority();
+		if err.Code != 0 {
+			fr.RetError(errSystem)
+			return
+		}
+		featureRequest.GlobalPriority = minRes + 1
+		fmt.Println(featureRequest.GlobalPriority)
+
+	}
+	result := featureRequest.Insert(fr.User().ID,fr.User().Username)
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			fr.RetError(errDatabase)
@@ -110,7 +120,6 @@ func (fr *FeatureRequestController) GetByClient() {
 	if filter.ClientPriorityDir == ""{
 		filter.ClientPriorityDir = "desc"
 	}
-	fmt.Println(filter.Client)
 	feature_requests,result := models.GetFeatureRequestByFilterSort(&filter)
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
@@ -193,7 +202,7 @@ func (c *FeatureRequestController) AddRemoveClients() {
 	}
 	beego.Debug("Parsed FeatureRequestAddRemoveClients:", &inData)
 	client := models.FeatureRequest{}
-	result := client.AddRemoveClients(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, &inData, time.Now().UTC())
+	result := client.AddRemoveClients(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username,c.User().Role, &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -264,6 +273,36 @@ func (c *FeatureRequestController) UpdateState() {
 		state = true
 	}
 	result := client.UpdateState(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, state, time.Now().UTC())
+	if result.Code != 0 {
+		if result.Code == models.ErrDatabase {
+			c.RetError(errDatabase)
+			return
+		} else if result.Code == models.ErrSystem {
+			c.RetError(errSystem)
+			return
+		}else if result.Code == models.ErrNotFound {
+			e := err404
+			e.MoreInfo = "Feature request with this ID could not be found"
+			c.RetError(e)
+			return
+		}
+	}
+	c.Data["json"] = client
+	c.ServeJSON()
+}
+func (c *FeatureRequestController) UpdatePriority() {
+	inData,err := strconv.ParseInt(c.Ctx.Input.Param(":priority"),10,0)
+	fmt.Println(inData,err)
+	if err!= nil  {
+		controllerError := errInputDataValidation;
+		controllerError.MoreInfo = "Priority must be a number"
+		beego.Debug("State validation failed:", controllerError)
+		c.RetError(controllerError)
+		return
+	}
+	beego.Debug("Parsed inData:", inData)
+	client := models.FeatureRequest{}
+	result := client.UpdatePriority(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, int(inData), time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)

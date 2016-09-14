@@ -30,6 +30,7 @@ func NewFeatureRequestLog(userId string,featureRid string,tp string, icon string
 }
 const(
 	TITLE_UPDATE = "title_update"
+	NEW_FEATRE_REQUEST = "new_feature_request"
 	DESCRIPTION_UPDATE = "description_update"
 	PRODUCT_ARE_UPDATE= "product_are_update"
 	TICKET_URL_UPDATE= "ticket_url_update"
@@ -40,6 +41,7 @@ const(
 	STATE_OPEN= "reopen"
 )
 var LOG_MESSAGES map[string]string= map[string]string{
+	NEW_FEATRE_REQUEST : "<b><i>%s</i></b> added a new feature request",
 	TITLE_UPDATE : "<b><i>%s</i></b> updated the title of the feature request",
 	DESCRIPTION_UPDATE : "<b><i>%s</i></b> changed the description of the feature request",
 	PRODUCT_ARE_UPDATE : "<b><i>%s</i></b> modified the product area",
@@ -51,6 +53,7 @@ var LOG_MESSAGES map[string]string= map[string]string{
 	CHANGED_PRIORITY : "<b><i>%s</i></b> changed the priority of a feature request",
 }
 var ICONS map[string]string= map[string]string{
+	NEW_FEATRE_REQUEST : "add",
 	TITLE_UPDATE : "title",
 	DESCRIPTION_UPDATE : "subtitles",
 	PRODUCT_ARE_UPDATE : "aspect_ratio",

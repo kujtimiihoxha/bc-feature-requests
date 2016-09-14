@@ -16,6 +16,7 @@ type FeatureRequestCreate struct {
 	TargetDate   *time.Time   `json:"target_date" valid:"required"`
 	TicketUrl string    `json:"ticket_url"  valid:"url,required"`
 	ProductAreaId string    `json:"product_area_id"   valid:"uuid,required"`
+	GlobalPriority  int    `json:"global_priority"   valid:"required"`
 	Clients []struct{
 		ClientId string  `json:"client_id"   valid:"uuid,required"`
 		Priority int `json:"priority"   valid:"required"`
