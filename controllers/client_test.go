@@ -1,26 +1,27 @@
 package controllers
 
 import (
-	"testing"
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/astaxie/beego"
 	r "github.com/dancannon/gorethink"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/kujtimiihoxha/bc-feature-requests/db"
 	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	_ "github.com/kujtimiihoxha/bc-feature-requests/tests"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/astaxie/beego"
 	"net/http"
-	"bytes"
-	"encoding/json"
 	"net/http/httptest"
-	"errors"
-	"github.com/kujtimiihoxha/bc-feature-requests/db"
-	"time"
 	"reflect"
-	"github.com/dgrijalva/jwt-go"
-	"fmt"
+	"testing"
+	"time"
 )
 
 var clients_table = "clients"
 var client_feature_request_table = "client_feature_request"
+
 // Init client routes  for testing.
 func init() {
 	// Base route
@@ -58,7 +59,7 @@ func init() {
 // Code : 10014
 func TestInsertFailValidation(t *testing.T) {
 	insertClientNoName := models.ClientCreate{
-		Description:"Test",
+		Description: "Test",
 	}
 	b, _ := json.Marshal(insertClientNoName)
 	rs, _ := http.NewRequest("POST", "/api/v1/clients", bytes.NewReader(b))
@@ -85,8 +86,8 @@ func TestInsertFailWhenNoData(t *testing.T) {
 // Code : 10011
 func TestInsertSystemError(t *testing.T) {
 	insertClient := models.ClientCreate{
-		Description:"Test",
-		Name:"Test",
+		Description: "Test",
+		Name:        "Test",
 	}
 	b, _ := json.Marshal(insertClient)
 	rs, _ := http.NewRequest("POST", "/api/v1/clients", bytes.NewReader(b))
@@ -104,14 +105,14 @@ func TestInsertSystemError(t *testing.T) {
 // Code : 10002
 func TestInsertDatabaseError(t *testing.T) {
 	insertClient := models.ClientCreate{
-		Description:"Test",
-		Name:"Test",
+		Description: "Test",
+		Name:        "Test",
 	}
 	b, _ := json.Marshal(insertClient)
 	rs, _ := http.NewRequest("POST", "/api/v1/clients", bytes.NewReader(b))
 	mock := r.NewMock()
 	db.SetTestSession(mock)
-	mock.On(r.Table(clients_table).Insert(r.MockAnything())).Once().Return(r.WriteResponse{Errors:1, FirstError:"Error from DB"}, nil)
+	mock.On(r.Table(clients_table).Insert(r.MockAnything())).Once().Return(r.WriteResponse{Errors: 1, FirstError: "Error from DB"}, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	DataBaseError(w, t)
@@ -123,15 +124,15 @@ func TestInsertDatabaseError(t *testing.T) {
 // Client : With ID set
 func TestInsertSuccess(t *testing.T) {
 	insertClient := models.ClientCreate{
-		Description:"Test",
-		Name:"Test",
+		Description: "Test",
+		Name:        "Test",
 	}
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
 	b, _ := json.Marshal(insertClient)
 	rs, _ := http.NewRequest("POST", "/api/v1/clients", bytes.NewReader(b))
 	mock := r.NewMock()
 	db.SetTestSession(mock)
-	mock.On(r.Table(clients_table).Insert(r.MockAnything())).Once().Return(r.WriteResponse{GeneratedKeys:[]string{id}}, nil)
+	mock.On(r.Table(clients_table).Insert(r.MockAnything())).Once().Return(r.WriteResponse{GeneratedKeys: []string{id}}, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	Insert(w, t, id)
@@ -143,28 +144,27 @@ func TestInsertSuccess(t *testing.T) {
 // Code : 10013
 func TestInsertOnlyAdmin(t *testing.T) {
 	insertClient := models.ClientCreate{
-		Description:"Test",
-		Name:"Test",
+		Description: "Test",
+		Name:        "Test",
 	}
 	b, _ := json.Marshal(insertClient)
 	rs, _ := http.NewRequest("POST", "/api/v1/clients", bytes.NewReader(b))
 	w := httptest.NewRecorder()
 	claims := &models.Claims{
-		StandardClaims : jwt.StandardClaims{
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().UTC().Add(time.Hour * 24).Unix(),
 			Issuer:    "bc",
 		},
 		Username: "username",
-		Role: 2,
+		Role:     2,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(beego.AppConfig.String("jwt::key")))
-	rs.Header.Add("Authorization", "Bearer " + ss)
+	rs.Header.Add("Authorization", "Bearer "+ss)
 	beego.BConfig.RunMode = "dev"
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	NotAuthorized(w, t)
 }
-
 
 /*-------------------------------
 	Test Get
@@ -184,7 +184,6 @@ func TestGetAllSystemError(t *testing.T) {
 	SystemError(w, t)
 }
 
-
 // Test the response when successful
 // Should Return :
 // Status : 200
@@ -196,13 +195,12 @@ func TestGetAllSuccess(t *testing.T) {
 	tm := time.Now().UTC()
 	dbClients := []models.Client{
 		{
-			BaseModel:models.BaseModel{
-				ID: "585aca07-6d3c-43ba-97d4-8fb4cb27e024",
-				CreatedAt:&tm,
+			BaseModel: models.BaseModel{
+				ID:        "585aca07-6d3c-43ba-97d4-8fb4cb27e024",
+				CreatedAt: &tm,
 			},
-			Name:"Test",
-			Description:"Desc",
-
+			Name:        "Test",
+			Description: "Desc",
 		}}
 	mock.On(r.Table(clients_table)).Once().Return(dbClients, nil)
 	w := httptest.NewRecorder()
@@ -251,9 +249,8 @@ func TestGetByIDNotFound(t *testing.T) {
 	mock.On(r.Table(clients_table).Get("585aca07-6d3c-43ba-97d4-8fb4cb27e024")).Once().Return(nil, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
-	NotFound(w, t,"Client with this ID could not be found")
+	NotFound(w, t, "Client with this ID could not be found")
 }
-
 
 // Test the response when successful
 // Should Return :
@@ -261,8 +258,8 @@ func TestGetByIDNotFound(t *testing.T) {
 // Clients: model of clients in the DB.
 func TestGetByIDSuccess(t *testing.T) {
 	client := models.Client{
-		Name:"Test",
-		Description:"test",
+		Name:        "Test",
+		Description: "test",
 	}
 	rs, _ := http.NewRequest("GET", "/api/v1/clients/585aca07-6d3c-43ba-97d4-8fb4cb27e024", nil)
 	mock := r.NewMock()
@@ -282,7 +279,6 @@ func TestGetByIDSuccess(t *testing.T) {
 	})
 }
 
-
 /*-------------------------------
 	Test Delete
 --------------------------------*/
@@ -293,7 +289,7 @@ func TestGetByIDSuccess(t *testing.T) {
 // Code : 10011
 func TestDeleteSystemError(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
-	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
+	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/"+id, nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
 	mock.On(r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id))).Once().Return(nil, nil)
@@ -309,16 +305,15 @@ func TestDeleteSystemError(t *testing.T) {
 // Code : 404
 func TestDeleteNotFound(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
-	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
+	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/"+id, nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
 	mock.On(r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id))).Once().Return(nil, nil)
 	mock.On(r.Table(clients_table).Get(id)).Once().Return(nil, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
-	NotFound(w, t,"Client with this ID could not be found")
+	NotFound(w, t, "Client with this ID could not be found")
 }
-
 
 // Test the response when there is any database error.
 // Should Return :
@@ -326,21 +321,22 @@ func TestDeleteNotFound(t *testing.T) {
 // Code : 10002
 func TestDeleteDatabaseError(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
-	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
+	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/"+id, nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
 	mock.On(r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id))).Once().Return(nil, nil)
 	mock.On(r.Table(clients_table).Get(id)).Twice().Return(models.Client{
 		BaseModel: models.BaseModel{
-			ID:"585aca07-6d3c-43ba-97d4-8fb4cb27e024",
+			ID: "585aca07-6d3c-43ba-97d4-8fb4cb27e024",
 		},
 	}, nil)
 
-	mock.On(r.Table(clients_table).Get(id).Delete()).Once().Return(r.WriteResponse{Errors:1, FirstError:"Error from DB"}, nil)
+	mock.On(r.Table(clients_table).Get(id).Delete()).Once().Return(r.WriteResponse{Errors: 1, FirstError: "Error from DB"}, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	DataBaseError(w, t)
 }
+
 // Test the response when successful
 // Should Return :
 // Status : 200
@@ -348,19 +344,18 @@ func TestDeleteDatabaseError(t *testing.T) {
 func TestDeleteSuccess(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
 	dbClient := models.Client{
-		BaseModel:models.BaseModel{
+		BaseModel: models.BaseModel{
 			ID: id,
 		},
-		Name:"Test",
-		Description:"Desc",
-
+		Name:        "Test",
+		Description: "Desc",
 	}
-	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
+	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/"+id, nil)
 	mock := r.NewMock()
 	db.SetTestSession(mock)
 	mock.On(r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id))).Once().Return(nil, nil)
 	mock.On(r.Table(clients_table).Get(id)).Once().Return(dbClient, nil)
-	mock.On(r.Table(clients_table).Get(id).Delete()).Once().Return(r.WriteResponse{Deleted:1}, nil)
+	mock.On(r.Table(clients_table).Get(id).Delete()).Once().Return(r.WriteResponse{Deleted: 1}, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	Convey("Test if response is success \n", t, func() {
@@ -381,24 +376,23 @@ func TestDeleteSuccess(t *testing.T) {
 // Code : 10013
 func TestDeleteOnlyAdmin(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
-	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/" + id, nil)
+	rs, _ := http.NewRequest("DELETE", "/api/v1/clients/"+id, nil)
 	w := httptest.NewRecorder()
 	claims := &models.Claims{
-		StandardClaims : jwt.StandardClaims{
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().UTC().Add(time.Hour * 24).Unix(),
 			Issuer:    "bc",
 		},
 		Username: "username",
-		Role: 2,
+		Role:     2,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(beego.AppConfig.String("jwt::key")))
-	rs.Header.Add("Authorization", "Bearer " + ss)
+	rs.Header.Add("Authorization", "Bearer "+ss)
 	beego.BConfig.RunMode = "dev"
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	NotAuthorized(w, t)
 }
-
 
 /*-------------------------------
 	Test Update
@@ -411,12 +405,11 @@ func TestDeleteOnlyAdmin(t *testing.T) {
 func TestUpdateSystemError(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
 	cl := models.ClientEdit{
-		Name:"Test",
-		Description:"Desc",
-
+		Name:        "Test",
+		Description: "Desc",
 	}
 	b, _ := json.Marshal(cl)
-	rs, _ := http.NewRequest("PUT", "/api/v1/clients/" + id, bytes.NewReader(b))
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/"+id, bytes.NewReader(b))
 	mock := r.NewMock()
 	db.SetTestSession(mock)
 	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(nil, errors.New("Test error"))
@@ -444,7 +437,7 @@ func TestUpdateFailWhenNoData(t *testing.T) {
 // Code : 10014
 func TestUpdateFailValidation(t *testing.T) {
 	insertClientNoName := models.ClientEdit{
-		Description:"¡Test",//None ascii
+		Description: "¡Test", //None ascii
 	}
 	b, _ := json.Marshal(insertClientNoName)
 	rs, _ := http.NewRequest("PUT", "/api/v1/clients/585aca07-6d3c-43ba-97d4-8fb4cb27e024", bytes.NewReader(b))
@@ -453,7 +446,6 @@ func TestUpdateFailValidation(t *testing.T) {
 	ValidationFail(w, t, "Description: ¡Test does not validate as ascii;")
 }
 
-
 // Test the response when there is any database error.
 // Should Return :
 // Status : 500
@@ -461,14 +453,14 @@ func TestUpdateFailValidation(t *testing.T) {
 func TestUpdateDatabaseError(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
 	insertClient := models.ClientEdit{
-		Description:"Test",
-		Name:"Test",
+		Description: "Test",
+		Name:        "Test",
 	}
 	b, _ := json.Marshal(insertClient)
-	rs, _ := http.NewRequest("PUT", "/api/v1/clients/" + id, bytes.NewReader(b))
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/"+id, bytes.NewReader(b))
 	mock := r.NewMock()
 	db.SetTestSession(mock)
-	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Errors:1, FirstError:"Error from DB"}, nil)
+	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Errors: 1, FirstError: "Error from DB"}, nil)
 	w := httptest.NewRecorder()
 	fmt.Println(string(w.Body.Bytes()))
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
@@ -482,17 +474,17 @@ func TestUpdateDatabaseError(t *testing.T) {
 func TestUpdateNotFound(t *testing.T) {
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
 	insertClient := models.ClientEdit{
-		Description:"Test",
-		Name:"Test",
+		Description: "Test",
+		Name:        "Test",
 	}
 	b, _ := json.Marshal(insertClient)
-	rs, _ := http.NewRequest("PUT", "/api/v1/clients/" + id, bytes.NewReader(b))
+	rs, _ := http.NewRequest("PUT", "/api/v1/clients/"+id, bytes.NewReader(b))
 	mock := r.NewMock()
 	db.SetTestSession(mock)
-	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Skipped:1}, nil)
+	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Skipped: 1}, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
-	NotFound(w, t,"Client with this ID could not be found")
+	NotFound(w, t, "Client with this ID could not be found")
 }
 
 // Test the response when it is a success.
@@ -501,27 +493,26 @@ func TestUpdateNotFound(t *testing.T) {
 // Client : New client name, New client descripiton
 func TestUpdateSuccess(t *testing.T) {
 	insertClient := models.ClientEdit{
-		Description:"Test",
-		Name:"Test",
+		Description: "Test",
+		Name:        "Test",
 	}
 	id := "585aca07-6d3c-43ba-97d4-8fb4cb27e024"
 	b, _ := json.Marshal(insertClient)
 	rs, _ := http.NewRequest("PUT", "/api/v1/clients/"+id, bytes.NewReader(b))
 	mock := r.NewMock()
 	db.SetTestSession(mock)
-	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Replaced:1}, nil)
+	mock.On(r.Table(clients_table).Get(id).Update(r.MockAnything())).Once().Return(r.WriteResponse{Replaced: 1}, nil)
 	mock.On(r.Table(clients_table).Get(id)).Once().Return(models.Client{
-		BaseModel:models.BaseModel{
-			ID:id,
+		BaseModel: models.BaseModel{
+			ID: id,
 		},
 		Description: insertClient.Description,
-		Name: insertClient.Name,
+		Name:        insertClient.Name,
 	}, nil)
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	Update(w, t, insertClient)
 }
-
 
 // Test the response when user has no privilege.
 // Should Return :
@@ -531,19 +522,17 @@ func TestUpdateOnlyAdmin(t *testing.T) {
 	rs, _ := http.NewRequest("PUT", "/api/v1/clients/585aca07-6d3c-43ba-97d4-8fb4cb27e024", nil)
 	w := httptest.NewRecorder()
 	claims := &models.Claims{
-		StandardClaims : jwt.StandardClaims{
+		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().UTC().Add(time.Hour * 24).Unix(),
 			Issuer:    "bc",
 		},
 		Username: "username",
-		Role: 2,
+		Role:     2,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, _ := token.SignedString([]byte(beego.AppConfig.String("jwt::key")))
-	rs.Header.Add("Authorization", "Bearer " + ss)
+	rs.Header.Add("Authorization", "Bearer "+ss)
 	beego.BConfig.RunMode = "dev"
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	NotAuthorized(w, t)
 }
-
-

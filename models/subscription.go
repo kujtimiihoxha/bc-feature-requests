@@ -1,16 +1,17 @@
 package models
 
 import (
-	"github.com/astaxie/beego"
 	"container/list"
-	"time"
-	"github.com/gorilla/websocket"
 	"encoding/json"
+	"github.com/astaxie/beego"
+	"github.com/gorilla/websocket"
+	"time"
 )
 
 type Subscription struct {
-	New     <-chan Event // New events coming in.
+	New <-chan Event // New events coming in.
 }
+
 var (
 	// Channel for new join users.
 	subscribe = make(chan Subscriber, 10)
@@ -35,17 +36,17 @@ func Leave(user string) {
 	unsubscribe <- user
 }
 
-
 type Subscriber struct {
 	Name string
 	Conn *websocket.Conn // Only for WebSocket users; otherwise nil.
 }
+
 func loop() {
 	for {
 		select {
 		case sub := <-subscribe:
 			if !isUserExist(subscribers, sub.Name) {
-				subscribers.PushBack(sub)// Add user to the end of list.
+				subscribers.PushBack(sub) // Add user to the end of list.
 				// Publish a JOIN event.
 				publish <- newEvent(EVENT_JOIN, sub.Name, "")
 				beego.Info("New user:", sub.Name, ";WebSocket:", sub.Conn != nil)
@@ -53,7 +54,7 @@ func loop() {
 				beego.Info("Old user:", sub.Name, ";WebSocket:", sub.Conn != nil)
 			}
 		case event := <-publish:
-		// Notify waiting list.
+			// Notify waiting list.
 			for ch := waitingList.Back(); ch != nil; ch = ch.Prev() {
 				ch.Value.(chan bool) <- true
 				waitingList.Remove(ch)
@@ -81,7 +82,6 @@ func loop() {
 	}
 }
 
-
 func init() {
 	go loop()
 }
@@ -94,7 +94,6 @@ func isUserExist(subscribers *list.List, user string) bool {
 	}
 	return false
 }
-
 
 // broadcastWebSocket broadcasts messages to WebSocket users.
 func broadcastWebSocket(event Event) {

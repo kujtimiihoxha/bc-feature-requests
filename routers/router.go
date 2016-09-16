@@ -27,7 +27,7 @@ func init() {
 			beego.NSRouter("/", &controllers.ClientController{}, "get:Get"),
 			// Get client by ID
 			beego.NSRouter("/:id", &controllers.ClientController{}, "get:GetByID"),
-				// Insert a client
+			// Insert a client
 			beego.NSRouter("/", &controllers.ClientController{}, "post:Post"),
 			// Update client
 			beego.NSRouter("/:id", &controllers.ClientController{}, "put:Update"),
@@ -60,7 +60,6 @@ func init() {
 			beego.NSRouter("/:id/clients", &controllers.FeatureRequestController{}, "post:AddRemoveClients"),
 			beego.NSRouter("/:id/comments", &controllers.FeatureRequestController{}, "post:AddComment"),
 			beego.NSRouter("/client/:id", &controllers.FeatureRequestController{}, "get:GetByClient"),
-
 		),
 		// Users endpoint
 		beego.NSNamespace("/users",
@@ -78,7 +77,7 @@ func init() {
 			beego.NSRouter("/:id", &controllers.UserController{}, "delete:Delete"),
 			beego.NSRouter("/:id/notifications", &controllers.UserController{}, "get:GetNotifications"),
 			beego.NSRouter("/:id/notifications/viewed", &controllers.UserController{}, "put:SetNotificationsViewed"),
-		),// Authentication endpoint
+		), // Authentication endpoint
 		beego.NSNamespace("/auth",
 			// Log in
 			beego.NSRouter("/login", &controllers.AuthController{}, "post:Login"),
@@ -89,7 +88,6 @@ func init() {
 			// Register client user
 			beego.NSRouter("/register/client", &controllers.AuthController{}, "post:PostClient"),
 		),
-
 	)
 	// Add Api v1 namespace to beego.
 	beego.AddNamespace(ns)

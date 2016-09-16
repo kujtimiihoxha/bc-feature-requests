@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"github.com/astaxie/beego"
-	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	"encoding/json"
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
-	"github.com/kujtimiihoxha/bc-feature-requests/mail"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/kujtimiihoxha/bc-feature-requests/mail"
+	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	"strings"
 	"time"
 )
@@ -59,22 +59,23 @@ func (a *AuthController) Login() {
 	a.ServeJSON()
 }
 
-func MustBeAuthenticated(ctx *context.Context)  {
-	if ctx.Request.Method == "OPTIONS"{
+func MustBeAuthenticated(ctx *context.Context) {
+	if ctx.Request.Method == "OPTIONS" {
 		return
 	}
-	if (beego.BConfig.RunMode == "test"){
+	if beego.BConfig.RunMode == "test" {
 		return
 	}
-	_,err:= ParseToken(ctx)
+	_, err := ParseToken(ctx)
 	if err != nil {
-		returnError(ctx,err)
+		returnError(ctx, err)
 	}
 	return
 
 }
+
 // ParseToken parse JWT token in http header.
-func  ParseToken(ctx *context.Context) (*jwt.Token, *ControllerError) {
+func ParseToken(ctx *context.Context) (*jwt.Token, *ControllerError) {
 
 	authString := ctx.Input.Header("Authorization")
 	beego.Debug("AuthString:", authString)
@@ -95,12 +96,12 @@ func  ParseToken(ctx *context.Context) (*jwt.Token, *ControllerError) {
 	if err != nil {
 		beego.Error("Parse token:", err)
 		if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors & jwt.ValidationErrorMalformed != 0 {
+			if ve.Errors&jwt.ValidationErrorMalformed != 0 {
 				// That's not even a token
 				errAuth := errPermission
 				errAuth.Message = "Token maleformed"
 				return nil, errAuth
-			} else if ve.Errors & (jwt.ValidationErrorExpired | jwt.ValidationErrorNotValidYet) != 0 {
+			} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
 				// Token is either expired or not active yet
 				errAuth := errPermission
 				errAuth.Message = "Token Expired"
@@ -126,11 +127,11 @@ func  ParseToken(ctx *context.Context) (*jwt.Token, *ControllerError) {
 	beego.Debug("Token:", token)
 	return token, nil
 }
-func (base *BaseController) AdminAccessOnly() *ControllerError{
-	if (beego.BConfig.RunMode == "test"){
+func (base *BaseController) AdminAccessOnly() *ControllerError {
+	if beego.BConfig.RunMode == "test" {
 		return nil
 	}
-	tk ,err := ParseToken(base.Ctx)
+	tk, err := ParseToken(base.Ctx)
 	if err != nil {
 		return err
 	}
@@ -141,11 +142,11 @@ func (base *BaseController) AdminAccessOnly() *ControllerError{
 	}
 	return nil
 }
-func (base *BaseController) NoClientAccessOnly() *ControllerError{
-	if (beego.BConfig.RunMode == "test"){
+func (base *BaseController) NoClientAccessOnly() *ControllerError {
+	if beego.BConfig.RunMode == "test" {
 		return nil
 	}
-	tk ,err := ParseToken(base.Ctx)
+	tk, err := ParseToken(base.Ctx)
 	if err != nil {
 		return err
 	}
@@ -159,7 +160,7 @@ func (base *BaseController) NoClientAccessOnly() *ControllerError{
 
 func (c *AuthController) Verify() {
 	user := models.User{}
-	result := user.Verify(c.Ctx.Input.Param(":id"),time.Now().UTC())
+	result := user.Verify(c.Ctx.Input.Param(":id"), time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
@@ -222,9 +223,9 @@ func (c *AuthController) Post() {
 			return
 		}
 	}
-	result = mail.Send(user.ID,user.Email)
+	result = mail.Send(user.ID, user.Email)
 	if result.Code != 0 {
-		user.Delete(user.ID);
+		user.Delete(user.ID)
 		if result.Code == models.ErrEmailNotSent {
 			errToSend := errSystem
 			errToSend.Message = result.Info
@@ -235,7 +236,6 @@ func (c *AuthController) Post() {
 	c.Data["json"] = user
 	c.ServeJSON()
 }
-
 
 func (c *AuthController) PostClient() {
 	inData := models.ClientRegister{}
@@ -279,9 +279,9 @@ func (c *AuthController) PostClient() {
 			return
 		}
 	}
-	result = mail.Send(user.ID,user.Email)
+	result = mail.Send(user.ID, user.Email)
 	if result.Code != 0 {
-		user.Delete(user.ID);
+		user.Delete(user.ID)
 		cl.Delete(user.ClientID)
 		if result.Code == models.ErrEmailNotSent {
 			errToSend := errSystem

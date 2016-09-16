@@ -1,4 +1,5 @@
 package helpers
+
 func RemoveDuplicates(xs *[]interface{}) {
 	found := make(map[interface{}]bool)
 	j := 0

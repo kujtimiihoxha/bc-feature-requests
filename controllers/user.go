@@ -1,9 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/kujtimiihoxha/bc-feature-requests/models"
-	"encoding/json"
 	"time"
 )
 

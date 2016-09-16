@@ -1,13 +1,13 @@
 package models
 
 import (
-	r "github.com/dancannon/gorethink"
-	"time"
-	"github.com/kujtimiihoxha/bc-feature-requests/db"
-	"github.com/kujtimiihoxha/bc-feature-requests/helpers"
 	"fmt"
 	"github.com/bradfitz/slice"
+	r "github.com/dancannon/gorethink"
+	"github.com/kujtimiihoxha/bc-feature-requests/db"
+	"github.com/kujtimiihoxha/bc-feature-requests/helpers"
 	"strings"
+	"time"
 )
 
 /*
@@ -26,19 +26,20 @@ import (
 // UpdatedAt: The date of the last update
 type FeatureRequest struct {
 	BaseModel
-	Title           string    `gorethink:"title,omitempty" json:"title"`
-	TitleNormalized string    `gorethink:"title_normalized,omitempty" json:"-"`
-	Description     string    `gorethink:"description,omitempty" json:"description"`
-	TargetDate      *time.Time   `gorethink:"target_date,omitempty" json:"target_date"`
-	TicketUrl       string    `gorethink:"ticket_url,omitempty" json:"ticket_url"`
-	ProductAreaId   string    `gorethink:"product_area_id,omitempty" json:"product_area_id"`
-	EmployID        string    `gorethink:"employ_id,omitempty" json:"employ_id"`
-	Closed          bool    `gorethink:"closed" json:"closed"`
-	GlobalPriority  int    `gorethink:"global_priority,omitempty" json:"global_priority"`
-	Clients         []ClientFeatureRequest  `gorethink:"-" json:"clients"`
-	Modifications   []FeatureRequestLog  `gorethink:"-" json:"modifications"`
-	Comments        []UserComment  `gorethink:"-" json:"comments"`
+	Title           string                 `gorethink:"title,omitempty" json:"title"`
+	TitleNormalized string                 `gorethink:"title_normalized,omitempty" json:"-"`
+	Description     string                 `gorethink:"description,omitempty" json:"description"`
+	TargetDate      *time.Time             `gorethink:"target_date,omitempty" json:"target_date"`
+	TicketUrl       string                 `gorethink:"ticket_url,omitempty" json:"ticket_url"`
+	ProductAreaId   string                 `gorethink:"product_area_id,omitempty" json:"product_area_id"`
+	EmployID        string                 `gorethink:"employ_id,omitempty" json:"employ_id"`
+	Closed          bool                   `gorethink:"closed" json:"closed"`
+	GlobalPriority  int                    `gorethink:"global_priority,omitempty" json:"global_priority"`
+	Clients         []ClientFeatureRequest `gorethink:"-" json:"clients"`
+	Modifications   []FeatureRequestLog    `gorethink:"-" json:"modifications"`
+	Comments        []UserComment          `gorethink:"-" json:"comments"`
 }
+
 // The feature requests table name.
 const feature_requests_table = "feature_requests"
 
@@ -50,16 +51,16 @@ const feature_requests_table = "feature_requests"
 //	- The Feature request created.
 func NewFeatureRequest(fr *FeatureRequestCreate, t time.Time, employID string) *FeatureRequest {
 	frc := &FeatureRequest{
-		Title: fr.Title,
+		Title:           fr.Title,
 		TitleNormalized: strings.ToLower(fr.Title),
-		Description: fr.Description,
-		EmployID: employID,
-		ProductAreaId: fr.ProductAreaId,
-		TicketUrl: fr.TicketUrl,
-		Clients:[]ClientFeatureRequest{},
-		TargetDate: fr.TargetDate,
-		Closed: false,
-		GlobalPriority: fr.GlobalPriority,
+		Description:     fr.Description,
+		EmployID:        employID,
+		ProductAreaId:   fr.ProductAreaId,
+		TicketUrl:       fr.TicketUrl,
+		Clients:         []ClientFeatureRequest{},
+		TargetDate:      fr.TargetDate,
+		Closed:          false,
+		GlobalPriority:  fr.GlobalPriority,
 		BaseModel: BaseModel{
 			CreatedAt: &t,
 			UpdatedAt: &t,
@@ -73,6 +74,7 @@ func NewFeatureRequest(fr *FeatureRequestCreate, t time.Time, employID string) *
 	}
 	return frc
 }
+
 // Get all clients from the DB.
 // Returns:
 // 	- Array of clients (or empty if there are no clients in the DB).
@@ -86,9 +88,9 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 	total := 0
 	cntRm, err := r.Table(feature_requests_table).Filter(statements).Count().Run(db.GetSession().(r.QueryExecutor))
 	cntRm.One(&total)
-	var result *r.Cursor;
+	var result *r.Cursor
 	term := r.Table(feature_requests_table).Filter(statements)
-	fmt.Println(filter.Field,filter.Dir)
+	fmt.Println(filter.Field, filter.Dir)
 	if filter.Field != "" {
 		if filter.Dir != "" {
 			if filter.Dir == "asc" {
@@ -100,7 +102,7 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 			term = term.OrderBy(filter.Field)
 		}
 	}
-	if !( filter.ClientPriorityDir != "" && filter.Client != "") {
+	if !(filter.ClientPriorityDir != "" && filter.Client != "") {
 		if filter.Skip != 0 {
 			term = term.Skip(filter.Skip)
 		}
@@ -131,8 +133,8 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 	if filter.ClientPriorityDir != "" && filter.Client != "" {
 		if filter.ClientPriorityDir == "asc" {
 			slice.Sort(feature_requests[:], func(i, j int) bool {
-				var iClient ClientFeatureRequest;
-				var jClient ClientFeatureRequest;
+				var iClient ClientFeatureRequest
+				var jClient ClientFeatureRequest
 				for _, v := range feature_requests[i].Clients {
 					if v.ClientId == filter.Client {
 						iClient = v
@@ -148,8 +150,8 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 		}
 		if filter.ClientPriorityDir == "desc" {
 			slice.Sort(feature_requests[:], func(i, j int) bool {
-				var iClient ClientFeatureRequest;
-				var jClient ClientFeatureRequest;
+				var iClient ClientFeatureRequest
+				var jClient ClientFeatureRequest
 				for _, v := range feature_requests[i].Clients {
 					if v.ClientId == filter.Client {
 						iClient = v
@@ -163,22 +165,22 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 				return iClient.Priority < jClient.Priority
 			})
 		}
-		fmt.Println(filter.Skip,filter.Get)
+		fmt.Println(filter.Skip, filter.Get)
 		if filter.Skip != 0 && filter.Get != 0 {
-			if  filter.Skip+filter.Get < len(feature_requests){
-				feature_requests = feature_requests[filter.Skip: filter.Skip+filter.Get]
+			if filter.Skip+filter.Get < len(feature_requests) {
+				feature_requests = feature_requests[filter.Skip : filter.Skip+filter.Get]
 			} else {
-				if  filter.Skip <  len(feature_requests){
+				if filter.Skip < len(feature_requests) {
 					feature_requests = feature_requests[filter.Skip:]
 				}
 			}
 		} else {
 			if filter.Get != 0 {
-				if  filter.Get <  len(feature_requests){
+				if filter.Get < len(feature_requests) {
 					feature_requests = feature_requests[0:filter.Get]
 				}
-			} else if   filter.Skip != 0 {
-				if  filter.Skip <  len(feature_requests){
+			} else if filter.Skip != 0 {
+				if filter.Skip < len(feature_requests) {
 					feature_requests = feature_requests[filter.Skip:]
 				}
 			}
@@ -195,9 +197,9 @@ func GetFeatureRequestByFilterSort(filter *FeatureRequestFilter) (FeatureRequest
 func generateFeatureRequestQuery(filter *FeatureRequestFilter) (interface{}, *CodeInfo) {
 	filterStatements := []interface{}{}
 	if filter.Client != "" {
-		fr_match := []ClientFeatureRequest{};
+		fr_match := []ClientFeatureRequest{}
 		query := r.Table(client_feature_request_table).Filter(
-			r.Row.Field("client_id").Eq(filter.Client));
+			r.Row.Field("client_id").Eq(filter.Client))
 		c_frRes, err := query.Run(db.GetSession().(r.QueryExecutor))
 		if err != nil {
 			return filterStatements, ErrorInfo(ErrSystem, err.Error())
@@ -258,14 +260,14 @@ func (c *FeatureRequest) GetById(id string) *CodeInfo {
 	c.getComments()
 	return ci
 }
-func GetMinGlobalPriority() ( int,*CodeInfo ){
+func GetMinGlobalPriority() (int, *CodeInfo) {
 	fr := FeatureRequest{}
-	minRes,err := r.Table(feature_requests_table).Max("global_priority").Pluck("global_priority").Run(db.GetSession().(r.QueryExecutor))
+	minRes, err := r.Table(feature_requests_table).Max("global_priority").Pluck("global_priority").Run(db.GetSession().(r.QueryExecutor))
 	if err != nil {
 		return 0, ErrorInfo(ErrSystem, err.Error())
 	}
 	minRes.One(&fr)
-	return fr.GlobalPriority, OkInfo("");
+	return fr.GlobalPriority, OkInfo("")
 }
 
 // Update feature request target date.
@@ -305,16 +307,17 @@ func (c *FeatureRequest) UpdateTargetDate(id string, userId string, username str
 	notifications := []*Notification{}
 	for _, v := range users {
 
-		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/"+id, log, time.Now().UTC()))
 	}
 	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
-	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/"+id, log, time.Now().UTC())))
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
 	c.getLogs()
 	return OkInfo("Data updated succesfully")
 }
+
 // Update feature request details.
 // Error :
 // 	- Returns CodeInfo with the error information.
@@ -341,9 +344,9 @@ func (c *FeatureRequest) UpdateDetails(id string, userId string, username string
 		log := NewFeatureRequestLog(userId, id, v, ICONS[v], fmt.Sprintf(LOG_MESSAGES[v], username))
 		updates = append(updates, NewFeatureRequestLog(userId, id, v, ICONS[v], fmt.Sprintf(LOG_MESSAGES[v], username)))
 		for _, v := range users {
-			notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
+			notifications = append(notifications, NewNotification(v.ID, "bc/details/"+id, log, time.Now().UTC()))
 		}
-		broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
+		broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/"+id, log, time.Now().UTC())))
 	}
 	wr, err := r.Table(feature_request_log_table).Insert(updates).RunWrite(c.Session())
 	if wr.Errors > 0 {
@@ -367,6 +370,7 @@ func (c *FeatureRequest) getLogs() *CodeInfo {
 	}
 	return OkInfo("")
 }
+
 // Update feature request state.
 // Error :
 // 	- Returns CodeInfo with the error information.
@@ -406,16 +410,17 @@ func (c *FeatureRequest) UpdateState(id string, userId string, username string, 
 	userRes.All(&users)
 	notifications := []*Notification{}
 	for _, v := range users {
-		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/"+id, log, time.Now().UTC()))
 	}
 	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
-	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/"+id, log, time.Now().UTC())))
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
 	c.getLogs()
 	return OkInfo("Data updated succesfully")
 }
+
 // Update feature request priority.
 // Error :
 // 	- Returns CodeInfo with the error information.
@@ -424,13 +429,13 @@ func (c *FeatureRequest) UpdateState(id string, userId string, username string, 
 //     - Returns CodeInfo with Code = 0 (No error)
 func (c *FeatureRequest) UpdatePriority(id string, userId string, username string, priority int, t time.Time) *CodeInfo {
 	c.GlobalPriority = priority
-	if v:=CheckGlobalPriority(*c,nil); v.Code != 0 {
-		return  v;
+	if v := CheckGlobalPriority(*c, nil); v.Code != 0 {
+		return v
 	}
-	if v:=c.update(feature_requests_table,id,c); v.Code != 0 {
-		return  v;
+	if v := c.update(feature_requests_table, id, c); v.Code != 0 {
+		return v
 	}
-	c.UpdatedAt= &t
+	c.UpdatedAt = &t
 	log := NewFeatureRequestLog(
 		userId,
 		id,
@@ -453,10 +458,10 @@ func (c *FeatureRequest) UpdatePriority(id string, userId string, username strin
 	userRes.All(&users)
 	notifications := []*Notification{}
 	for _, v := range users {
-		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/"+id, log, time.Now().UTC()))
 	}
 	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
-	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/"+id, log, time.Now().UTC())))
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
@@ -469,7 +474,7 @@ func (c *FeatureRequest) UpdatePriority(id string, userId string, username strin
 // Success :
 //     - Fills the updated data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
-func (c *FeatureRequest) AddRemoveClients(id string, userId string, username string,role int, addRemove *FeatureRequestAddRemoveClients, t time.Time) *CodeInfo {
+func (c *FeatureRequest) AddRemoveClients(id string, userId string, username string, role int, addRemove *FeatureRequestAddRemoveClients, t time.Time) *CodeInfo {
 	if len(addRemove.ClientsToRemove) > 0 {
 		statements := []interface{}{}
 		for _, v := range addRemove.ClientsToRemove {
@@ -486,7 +491,7 @@ func (c *FeatureRequest) AddRemoveClients(id string, userId string, username str
 	}
 	clientsToAdd := []*ClientFeatureRequest{}
 	for _, v := range addRemove.ClientsToAdd {
-		clientFR := NewClientFeatureRequest(id, v.Client_id, v.Priority, time.Now().UTC());
+		clientFR := NewClientFeatureRequest(id, v.Client_id, v.Priority, time.Now().UTC())
 		CheckPriority(*clientFR)
 		clientsToAdd = append(clientsToAdd, clientFR)
 	}
@@ -511,7 +516,7 @@ func (c *FeatureRequest) AddRemoveClients(id string, userId string, username str
 	if !clientRewRes.IsNil() {
 		clientRewRes.All(&c.Clients)
 	}
-	change := CHANGED_CLIENTS;
+	change := CHANGED_CLIENTS
 	if role == 3 {
 		change = CHANGED_PRIORITY
 	}
@@ -537,10 +542,10 @@ func (c *FeatureRequest) AddRemoveClients(id string, userId string, username str
 	userRes.All(&users)
 	notifications := []*Notification{}
 	for _, v := range users {
-		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/"+id, log, time.Now().UTC()))
 	}
 	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
-	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/"+id, log, time.Now().UTC())))
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
@@ -557,7 +562,7 @@ func (c *FeatureRequest) AddRemoveClients(id string, userId string, username str
 //     - Returns CodeInfo with Code = 0 (No error)
 
 func (c *FeatureRequest) Insert(userId string, username string) *CodeInfo {
-	CheckGlobalPriority(*c,nil)
+	CheckGlobalPriority(*c, nil)
 	for _, v := range c.Clients {
 		CheckPriority(v)
 	}
@@ -586,10 +591,10 @@ func (c *FeatureRequest) Insert(userId string, username string) *CodeInfo {
 	userRes.All(&users)
 	notifications := []*Notification{}
 	for _, v := range users {
-		notifications = append(notifications, NewNotification(v.ID, "bc/details/" + id, log, time.Now().UTC()))
+		notifications = append(notifications, NewNotification(v.ID, "bc/details/"+id, log, time.Now().UTC()))
 	}
 	_, err = r.Table(notifications_table).Insert(notifications).Run(c.Session())
-	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/" + id, log, time.Now().UTC())))
+	broadcastWebSocket(newEvent(EVENT_MESSAGE, userId, NewNotification("", "bc/details/"+id, log, time.Now().UTC())))
 	if err != nil {
 		return ErrorInfo(ErrSystem, err.Error())
 	}
@@ -617,7 +622,7 @@ func (c *FeatureRequest) getComments() *CodeInfo {
 	}
 	return OkInfo("")
 }
-func CheckPriority(cp  ClientFeatureRequest) *CodeInfo {
+func CheckPriority(cp ClientFeatureRequest) *CodeInfo {
 	c_fr := ClientFeatureRequest{}
 	c_frRes, err := r.Table(client_feature_request_table).Filter(r.And(r.Row.Field("client_id").Eq(
 		cp.ClientId), r.Row.Field("priority").Eq(cp.Priority), r.Row.Field("id").Ne(cp.ID))).Run(db.GetSession().(r.QueryExecutor))
@@ -639,7 +644,7 @@ func CheckPriority(cp  ClientFeatureRequest) *CodeInfo {
 	}
 	return CheckPriority(c_fr)
 }
-func CheckGlobalPriority(cp  FeatureRequest,t *time.Time) *CodeInfo {
+func CheckGlobalPriority(cp FeatureRequest, t *time.Time) *CodeInfo {
 	fr := FeatureRequest{}
 	if t == nil {
 		frRes, err := r.Table(feature_requests_table).Filter(r.Row.Field("global_priority").Eq(cp.GlobalPriority)).Run(db.GetSession().(r.QueryExecutor))
@@ -651,7 +656,7 @@ func CheckGlobalPriority(cp  FeatureRequest,t *time.Time) *CodeInfo {
 		}
 		frRes.One(&fr)
 	} else {
-		frRes, err := r.Table(feature_requests_table).Filter(r.And(r.Row.Field("global_priority").Eq(cp.GlobalPriority),r.Row.Field("updated_at").Ne(t))).Run(db.GetSession().(r.QueryExecutor))
+		frRes, err := r.Table(feature_requests_table).Filter(r.And(r.Row.Field("global_priority").Eq(cp.GlobalPriority), r.Row.Field("updated_at").Ne(t))).Run(db.GetSession().(r.QueryExecutor))
 		if err != nil {
 			return ErrorInfo(ErrSystem, err.Error())
 		}
@@ -661,8 +666,8 @@ func CheckGlobalPriority(cp  FeatureRequest,t *time.Time) *CodeInfo {
 		frRes.One(&fr)
 	}
 	fr.GlobalPriority++
-	lt:= time.Now()
-	fr.UpdatedAt = &lt;
+	lt := time.Now()
+	fr.UpdatedAt = &lt
 	wr, err := r.Table(feature_requests_table).Get(fr.ID).Update(fr).RunWrite(
 		db.GetSession().(r.QueryExecutor))
 	if err != nil {
@@ -671,12 +676,14 @@ func CheckGlobalPriority(cp  FeatureRequest,t *time.Time) *CodeInfo {
 	if wr.Errors > 0 {
 		return ErrorInfo(ErrDatabase, wr.FirstError)
 	}
-	return CheckGlobalPriority(fr,&lt)
+	return CheckGlobalPriority(fr, &lt)
 }
+
 // Set FeatureRequest data from FeatureRequestEditTargetDate model.
 func (c *FeatureRequest) setFromFeatureRequestEditTargetDate(data *FeatureRequestEditTargetDate) {
 	c.TargetDate = data.TargetDate
 }
+
 // Set FeatureRequest data from FeatureRequestEditTargetDate model.
 func (c *FeatureRequest) setFromFeatureRequestEditDetails(data *FeatureRequestEditDetails) {
 	c.Title = data.Title

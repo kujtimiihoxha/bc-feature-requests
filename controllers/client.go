@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	"encoding/json"
 	"github.com/astaxie/beego"
+	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	"time"
 )
 
@@ -96,8 +96,8 @@ func (c *ClientController) Delete() {
 		} else if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
 			return
-		}else if result.Code == models.ErrRecordHasConnections {
-			err:= errInputData
+		} else if result.Code == models.ErrRecordHasConnections {
+			err := errInputData
 			err.Message = result.Info
 			c.RetError(err)
 			return
@@ -136,7 +136,7 @@ func (c *ClientController) Update() {
 		} else if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
-		}else if result.Code == models.ErrNotFound {
+		} else if result.Code == models.ErrNotFound {
 			e := err404
 			e.MoreInfo = "Client with this ID could not be found"
 			c.RetError(e)

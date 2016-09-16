@@ -17,8 +17,8 @@ import (
 // UpdatedAt: The date of the last update
 type Client struct {
 	BaseModel
-	Name           string    `gorethink:"name,omitempty" json:"name"`
-	Description    string    `gorethink:"description,omitempty" json:"description"`
+	Name        string `gorethink:"name,omitempty" json:"name"`
+	Description string `gorethink:"description,omitempty" json:"description"`
 }
 
 // The clients table name.
@@ -31,7 +31,7 @@ const client_table = "clients"
 //	- The Client created.
 func NewClient(client *ClientCreate, t time.Time) *Client {
 	return &Client{
-		Name: client.Name,
+		Name:        client.Name,
 		Description: client.Description,
 		BaseModel: BaseModel{
 			CreatedAt: &t,
@@ -49,6 +49,7 @@ func GetAllClients() ([]Client, *CodeInfo) {
 
 	return clients, result
 }
+
 // Get client by id.
 // Error :
 // 	- Returns CodeInfo with the error information.
@@ -92,12 +93,12 @@ func (c *Client) Update(id string, data *ClientEdit, t time.Time) *CodeInfo {
 //     - Fills the deleted data to the model calling the method.
 //     - Returns CodeInfo with Code = 0 (No error)
 func (c *Client) Delete(id string) *CodeInfo {
-	result,err:= r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id)).Run(c.Session())
+	result, err := r.Table(client_feature_request_table).Filter(r.Row.Field("client_id").Eq(id)).Run(c.Session())
 	if err != nil {
-		return  ErrorInfo(ErrSystem, err.Error())
+		return ErrorInfo(ErrSystem, err.Error())
 	}
 	if !result.IsNil() {
-		return ErrorInfo(ErrRecordHasConnections,"The client has feature requests and cannot be deleted")
+		return ErrorInfo(ErrRecordHasConnections, "The client has feature requests and cannot be deleted")
 	}
 	return c.delete(client_table, id, c)
 }

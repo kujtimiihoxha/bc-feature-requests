@@ -1,15 +1,16 @@
 package controllers
 
 import (
-	"testing"
+	"encoding/json"
 	"github.com/astaxie/beego"
 	_ "github.com/kujtimiihoxha/bc-feature-requests/tests"
 	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"net/http/httptest"
-	"encoding/json"
 	"reflect"
+	"testing"
 )
+
 // Init client routes  for testing.
 func init() {
 	// Base route
@@ -21,8 +22,8 @@ func TestDefaultRoute(t *testing.T) {
 	w := httptest.NewRecorder()
 	beego.BeeApp.Handlers.ServeHTTP(w, rs)
 	Convey("Test if main route returnes api helper \n", t, func() {
-		apiHelp :=  map[string]string{}
+		apiHelp := map[string]string{}
 		json.Unmarshal(w.Body.Bytes(), &apiHelp)
-		So(reflect.DeepEqual(apiHelp,API_HELP), ShouldEqual, true)
+		So(reflect.DeepEqual(apiHelp, API_HELP), ShouldEqual, true)
 	})
 }

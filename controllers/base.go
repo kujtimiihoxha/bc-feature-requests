@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"github.com/astaxie/beego"
-	"github.com/asaskevich/govalidator"
-	"github.com/astaxie/beego/context"
 	"encoding/json"
-	"github.com/kujtimiihoxha/bc-feature-requests/models"
+	"github.com/asaskevich/govalidator"
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/context"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/kujtimiihoxha/bc-feature-requests/models"
 )
 
 // BaseController.
@@ -14,6 +14,7 @@ import (
 type BaseController struct {
 	beego.Controller
 }
+
 // RetError.
 // Returns errors from other controllers.
 func (base *BaseController) RetError(e *ControllerError) {
@@ -26,9 +27,9 @@ func (base *BaseController) RetError(e *ControllerError) {
 	base.ServeJSON()
 	base.StopRun()
 }
-func (base *BaseController)User() *models.User {
+func (base *BaseController) User() *models.User {
 	user := &models.User{}
-	token,err:=ParseToken(base.Ctx)
+	token, err := ParseToken(base.Ctx)
 	if err != nil {
 		return user
 	}
@@ -38,16 +39,16 @@ func (base *BaseController)User() *models.User {
 	return user
 }
 func (base *BaseController) ValidateInput(i interface{}) (bool, *ControllerError) {
-	isValid,err := govalidator.ValidateStruct(i)
+	isValid, err := govalidator.ValidateStruct(i)
 	if err != nil {
-		controllerError := errInputDataValidation;
+		controllerError := errInputDataValidation
 		controllerError.MoreInfo = err.Error()
 		return false, controllerError
 	}
 	if !isValid {
 		return false, errInputDataValidation
 	}
-	return isValid,nil
+	return isValid, nil
 }
 
 func returnError(ctx *context.Context, e *ControllerError) {
@@ -56,6 +57,6 @@ func returnError(ctx *context.Context, e *ControllerError) {
 	}
 	ctx.Output.Header("Content-Type", "application/json; charset=utf-8")
 	ctx.ResponseWriter.WriteHeader(e.Status)
-	d,_ := json.Marshal(e)
+	d, _ := json.Marshal(e)
 	ctx.ResponseWriter.Write(d)
 }

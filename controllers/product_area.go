@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	"encoding/json"
 	"github.com/astaxie/beego"
+	"github.com/kujtimiihoxha/bc-feature-requests/models"
 	"time"
 )
 
@@ -97,7 +97,7 @@ func (c *ProductAreaController) Delete() {
 			c.RetError(errDatabase)
 			return
 		} else if result.Code == models.ErrRecordHasConnections {
-			err:= errInputData
+			err := errInputData
 			err.Message = result.Info
 			c.RetError(err)
 			return
@@ -136,7 +136,7 @@ func (c *ProductAreaController) Update() {
 		} else if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
-		}else if result.Code == models.ErrNotFound {
+		} else if result.Code == models.ErrNotFound {
 			e := err404
 			e.MoreInfo = "ProductArea with this ID could not be found"
 			c.RetError(e)

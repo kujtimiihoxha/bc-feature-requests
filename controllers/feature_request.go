@@ -1,12 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/kujtimiihoxha/bc-feature-requests/models"
-	"encoding/json"
-	"time"
 	"strconv"
-	"fmt"
+	"time"
 )
 
 type FeatureRequestController struct {
@@ -15,7 +15,7 @@ type FeatureRequestController struct {
 
 func (fr *FeatureRequestController) Post() {
 	inData := models.FeatureRequestCreate{}
-	err  := json.Unmarshal(fr.Ctx.Input.RequestBody, &inData)
+	err := json.Unmarshal(fr.Ctx.Input.RequestBody, &inData)
 	if err != nil {
 		beego.Debug("Error while parsing ClientCreateEdit:", err)
 		fr.RetError(errInputData)
@@ -29,9 +29,9 @@ func (fr *FeatureRequestController) Post() {
 	}
 	beego.Debug("Parsed ClientCreateEdit:", &inData)
 	createdAt := time.Now().UTC()
-	featureRequest := models.NewFeatureRequest(&inData, createdAt,fr.User().ID)
+	featureRequest := models.NewFeatureRequest(&inData, createdAt, fr.User().ID)
 	if fr.User().Role == 3 {
-		minRes,err:= models.GetMinGlobalPriority();
+		minRes, err := models.GetMinGlobalPriority()
 		if err.Code != 0 {
 			fr.RetError(errSystem)
 			return
@@ -40,7 +40,7 @@ func (fr *FeatureRequestController) Post() {
 		fmt.Println(featureRequest.GlobalPriority)
 
 	}
-	result := featureRequest.Insert(fr.User().ID,fr.User().Username)
+	result := featureRequest.Insert(fr.User().ID, fr.User().Username)
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			fr.RetError(errDatabase)
@@ -55,7 +55,7 @@ func (fr *FeatureRequestController) Post() {
 }
 func (fr *FeatureRequestController) AddComment() {
 	inData := models.FeatureRequestAddComment{}
-	err  := json.Unmarshal(fr.Ctx.Input.RequestBody, &inData)
+	err := json.Unmarshal(fr.Ctx.Input.RequestBody, &inData)
 	if err != nil {
 		beego.Debug("Error while parsing FeatureRequestAddComment:", err)
 		fr.RetError(errInputData)
@@ -69,7 +69,7 @@ func (fr *FeatureRequestController) AddComment() {
 	}
 	beego.Debug("Parsed FeatureRequestAddComment:", &inData)
 	featureRequest := models.FeatureRequest{}
-	result := featureRequest.AddComment(fr.Ctx.Input.Param(":id"),&inData)
+	result := featureRequest.AddComment(fr.Ctx.Input.Param(":id"), &inData)
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			fr.RetError(errDatabase)
@@ -82,7 +82,6 @@ func (fr *FeatureRequestController) AddComment() {
 	fr.Data["json"] = featureRequest
 	fr.ServeJSON()
 }
-
 
 func (c *FeatureRequestController) GetByID() {
 	featureRequest := models.FeatureRequest{}
@@ -104,7 +103,7 @@ func (c *FeatureRequestController) GetByID() {
 func (fr *FeatureRequestController) Get() {
 	filter := fr.ParseFilter()
 
-	feature_requests,result := models.GetFeatureRequestByFilterSort(&filter)
+	feature_requests, result := models.GetFeatureRequestByFilterSort(&filter)
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
 			fr.RetError(errSystem)
@@ -117,10 +116,10 @@ func (fr *FeatureRequestController) Get() {
 func (fr *FeatureRequestController) GetByClient() {
 	filter := fr.ParseFilter()
 	filter.Client = fr.Ctx.Input.Param(":id")
-	if filter.ClientPriorityDir == ""{
+	if filter.ClientPriorityDir == "" {
 		filter.ClientPriorityDir = "desc"
 	}
-	feature_requests,result := models.GetFeatureRequestByFilterSort(&filter)
+	feature_requests, result := models.GetFeatureRequestByFilterSort(&filter)
 	if result.Code != 0 {
 		if result.Code == models.ErrSystem {
 			fr.RetError(errSystem)
@@ -131,22 +130,22 @@ func (fr *FeatureRequestController) GetByClient() {
 	fr.ServeJSON()
 }
 func (fr *FeatureRequestController) ParseFilter() models.FeatureRequestFilter {
-	cl,_ := fr.GetInt("closed");
-	skip,_ := fr.GetInt("skip");
-	get,_ := fr.GetInt("get");
+	cl, _ := fr.GetInt("closed")
+	skip, _ := fr.GetInt("skip")
+	get, _ := fr.GetInt("get")
 	return models.FeatureRequestFilter{
-		Client:fr.GetString("client"),
-		Closed:cl,
-		Employ:fr.GetString("employ"),
-		ProductArea:fr.GetString("product_area"),
-		ClientPriorityDir:fr.GetString("priority_dir"),
-		FeatureRequestSort:models.FeatureRequestSort{
-			Dir:fr.GetString("dir"),
-			Field:fr.GetString("field"),
+		Client:            fr.GetString("client"),
+		Closed:            cl,
+		Employ:            fr.GetString("employ"),
+		ProductArea:       fr.GetString("product_area"),
+		ClientPriorityDir: fr.GetString("priority_dir"),
+		FeatureRequestSort: models.FeatureRequestSort{
+			Dir:   fr.GetString("dir"),
+			Field: fr.GetString("field"),
 		},
 		FeatureRequestPagination: models.FeatureRequestPagination{
 			Skip: skip,
-			Get: get,
+			Get:  get,
 		},
 	}
 }
@@ -167,7 +166,7 @@ func (c *FeatureRequestController) UpdateTargetDate() {
 	}
 	beego.Debug("Parsed FeatureRequestEditTargetDate:", &inData)
 	client := models.FeatureRequest{}
-	result := client.UpdateTargetDate(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, &inData, time.Now().UTC())
+	result := client.UpdateTargetDate(c.Ctx.Input.Param(":id"), c.User().ID, c.User().Username, &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -175,7 +174,7 @@ func (c *FeatureRequestController) UpdateTargetDate() {
 		} else if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
-		}else if result.Code == models.ErrNotFound {
+		} else if result.Code == models.ErrNotFound {
 			e := err404
 			e.MoreInfo = "Feature request with this ID could not be found"
 			c.RetError(e)
@@ -202,7 +201,7 @@ func (c *FeatureRequestController) AddRemoveClients() {
 	}
 	beego.Debug("Parsed FeatureRequestAddRemoveClients:", &inData)
 	client := models.FeatureRequest{}
-	result := client.AddRemoveClients(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username,c.User().Role, &inData, time.Now().UTC())
+	result := client.AddRemoveClients(c.Ctx.Input.Param(":id"), c.User().ID, c.User().Username, c.User().Role, &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -210,7 +209,7 @@ func (c *FeatureRequestController) AddRemoveClients() {
 		} else if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
-		}else if result.Code == models.ErrNotFound {
+		} else if result.Code == models.ErrNotFound {
 			e := err404
 			e.MoreInfo = "Feature request with this ID could not be found"
 			c.RetError(e)
@@ -237,7 +236,7 @@ func (c *FeatureRequestController) UpdateDetails() {
 	}
 	beego.Debug("Parsed FeatureRequestEditTargetDate:", &inData)
 	client := models.FeatureRequest{}
-	result := client.UpdateDetails(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, &inData, time.Now().UTC())
+	result := client.UpdateDetails(c.Ctx.Input.Param(":id"), c.User().ID, c.User().Username, &inData, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -245,7 +244,7 @@ func (c *FeatureRequestController) UpdateDetails() {
 		} else if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
-		}else if result.Code == models.ErrNotFound {
+		} else if result.Code == models.ErrNotFound {
 			e := err404
 			e.MoreInfo = "Feature request with this ID could not be found"
 			c.RetError(e)
@@ -257,10 +256,10 @@ func (c *FeatureRequestController) UpdateDetails() {
 }
 
 func (c *FeatureRequestController) UpdateState() {
-	inData,err := strconv.ParseInt(c.Ctx.Input.Param(":state"),10,0)
-	fmt.Println(inData,err)
-	if err!= nil || (inData != 1 && inData != 2 ) {
-		controllerError := errInputDataValidation;
+	inData, err := strconv.ParseInt(c.Ctx.Input.Param(":state"), 10, 0)
+	fmt.Println(inData, err)
+	if err != nil || (inData != 1 && inData != 2) {
+		controllerError := errInputDataValidation
 		controllerError.MoreInfo = "State must be either 1 or 2"
 		beego.Debug("State validation failed:", controllerError)
 		c.RetError(controllerError)
@@ -268,11 +267,11 @@ func (c *FeatureRequestController) UpdateState() {
 	}
 	beego.Debug("Parsed inData:", inData)
 	client := models.FeatureRequest{}
-	state := false;
+	state := false
 	if inData == 1 {
 		state = true
 	}
-	result := client.UpdateState(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, state, time.Now().UTC())
+	result := client.UpdateState(c.Ctx.Input.Param(":id"), c.User().ID, c.User().Username, state, time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -280,7 +279,7 @@ func (c *FeatureRequestController) UpdateState() {
 		} else if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
-		}else if result.Code == models.ErrNotFound {
+		} else if result.Code == models.ErrNotFound {
 			e := err404
 			e.MoreInfo = "Feature request with this ID could not be found"
 			c.RetError(e)
@@ -291,10 +290,10 @@ func (c *FeatureRequestController) UpdateState() {
 	c.ServeJSON()
 }
 func (c *FeatureRequestController) UpdatePriority() {
-	inData,err := strconv.ParseInt(c.Ctx.Input.Param(":priority"),10,0)
-	fmt.Println(inData,err)
-	if err!= nil  {
-		controllerError := errInputDataValidation;
+	inData, err := strconv.ParseInt(c.Ctx.Input.Param(":priority"), 10, 0)
+	fmt.Println(inData, err)
+	if err != nil {
+		controllerError := errInputDataValidation
 		controllerError.MoreInfo = "Priority must be a number"
 		beego.Debug("State validation failed:", controllerError)
 		c.RetError(controllerError)
@@ -302,7 +301,7 @@ func (c *FeatureRequestController) UpdatePriority() {
 	}
 	beego.Debug("Parsed inData:", inData)
 	client := models.FeatureRequest{}
-	result := client.UpdatePriority(c.Ctx.Input.Param(":id"),c.User().ID,c.User().Username, int(inData), time.Now().UTC())
+	result := client.UpdatePriority(c.Ctx.Input.Param(":id"), c.User().ID, c.User().Username, int(inData), time.Now().UTC())
 	if result.Code != 0 {
 		if result.Code == models.ErrDatabase {
 			c.RetError(errDatabase)
@@ -310,7 +309,7 @@ func (c *FeatureRequestController) UpdatePriority() {
 		} else if result.Code == models.ErrSystem {
 			c.RetError(errSystem)
 			return
-		}else if result.Code == models.ErrNotFound {
+		} else if result.Code == models.ErrNotFound {
 			e := err404
 			e.MoreInfo = "Feature request with this ID could not be found"
 			c.RetError(e)

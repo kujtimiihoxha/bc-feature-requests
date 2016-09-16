@@ -3,15 +3,15 @@ package main
 import (
 	_ "github.com/kujtimiihoxha/bc-feature-requests/routers"
 
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/plugins/cors"
-	"syscall"
-	"os"
 	"fmt"
-	"os/signal"
+	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/plugins/cors"
 	"github.com/kujtimiihoxha/bc-feature-requests/controllers"
 	"github.com/kujtimiihoxha/bc-feature-requests/db"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func handleSignals(c chan os.Signal) {
@@ -24,6 +24,7 @@ func handleSignals(c chan os.Signal) {
 	}
 	os.Exit(0)
 }
+
 // Application start.
 func main() {
 	// is graceful shutdown enabled
@@ -35,7 +36,7 @@ func main() {
 	}
 	// is logging enabled
 	if v, _ := beego.AppConfig.Bool("log::enabled"); v {
-		beego.SetLogger(logs.AdapterFile, `{"filename":"` + beego.AppConfig.String("log::path") + `"}`)
+		beego.SetLogger(logs.AdapterFile, `{"filename":"`+beego.AppConfig.String("log::path")+`"}`)
 	}
 	// set logging level to informational if in production mode.
 	if beego.BConfig.RunMode == "prod" {
@@ -44,7 +45,7 @@ func main() {
 	// set server name.
 	beego.BConfig.ServerName = beego.AppConfig.String("server")
 	// get the value of cors::allow-credentials
-	v,_:=beego.AppConfig.Bool("cors::allow-credentials")
+	v, _ := beego.AppConfig.Bool("cors::allow-credentials")
 	// set CORS settings
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		AllowOrigins:     beego.AppConfig.Strings("cors::allow-origins"),

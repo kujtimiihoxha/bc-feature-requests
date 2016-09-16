@@ -6,22 +6,22 @@ type UserLogin struct {
 }
 
 type UserRegister struct {
-	FirstName string `json:"first_name,omitempty" valid:"ascii,required"`
-	LastName  string `json:"last_name,omitempty" valid:"ascii,required"`
-	Email     string `json:"email,omitempty" valid:"email,required"`
-	Username  string `json:"username,omitempty" valid:"ascii,required"`
-	Password  string `json:"password,omitempty" valid:"ascii,required"`
-	ConfirmPassword  string `json:"confirm_password,omitempty" valid:"ascii,required"`
-	Role      string
+	FirstName       string `json:"first_name,omitempty" valid:"ascii,required"`
+	LastName        string `json:"last_name,omitempty" valid:"ascii,required"`
+	Email           string `json:"email,omitempty" valid:"email,required"`
+	Username        string `json:"username,omitempty" valid:"ascii,required"`
+	Password        string `json:"password,omitempty" valid:"ascii,required"`
+	ConfirmPassword string `json:"confirm_password,omitempty" valid:"ascii,required"`
+	Role            string
 }
 type ClientRegister struct {
-	ClientName string `json:"client_name,omitempty" valid:"ascii,required"`
-	Description  string `json:"description,omitempty" valid:"ascii,required"`
-	Email     string `json:"email,omitempty" valid:"email,required"`
-	Username  string `json:"username,omitempty" valid:"ascii,required"`
-	Password  string `json:"password,omitempty" valid:"ascii,required"`
-	ConfirmPassword  string `json:"confirm_password,omitempty" valid:"ascii,required"`
-	Role      string
+	ClientName      string `json:"client_name,omitempty" valid:"ascii,required"`
+	Description     string `json:"description,omitempty" valid:"ascii,required"`
+	Email           string `json:"email,omitempty" valid:"email,required"`
+	Username        string `json:"username,omitempty" valid:"ascii,required"`
+	Password        string `json:"password,omitempty" valid:"ascii,required"`
+	ConfirmPassword string `json:"confirm_password,omitempty" valid:"ascii,required"`
+	Role            string
 }
 type UserEdit struct {
 	FirstName string `json:"first_name,omitempty" valid:"ascii,optional"`

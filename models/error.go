@@ -2,17 +2,17 @@ package models
 
 // Predefined model error codes.
 const (
-	ErrDatabase = -1
-	ErrSystem   = -2
-	ErrUnAuthorized = -3
-	ErrNotFound = -4
-	ErrPasswordMismatch = -5
-	ErrEmailExists   = -6
-	ErrUsernameExists   = -7
-	ErrEmailNotSent   = -8
-	ErrUserNotVerified   = -9
-	ErrUserAlreadyVerified   = -10
-	ErrRecordHasConnections  = -11
+	ErrDatabase             = -1
+	ErrSystem               = -2
+	ErrUnAuthorized         = -3
+	ErrNotFound             = -4
+	ErrPasswordMismatch     = -5
+	ErrEmailExists          = -6
+	ErrUsernameExists       = -7
+	ErrEmailNotSent         = -8
+	ErrUserNotVerified      = -9
+	ErrUserAlreadyVerified  = -10
+	ErrRecordHasConnections = -11
 )
 
 // CodeInfo.
@@ -33,4 +33,3 @@ func ErrorInfo(code int, info string) *CodeInfo {
 func OkInfo(info string) *CodeInfo {
 	return &CodeInfo{0, info}
 }
-
